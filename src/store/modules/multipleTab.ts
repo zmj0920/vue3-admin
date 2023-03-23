@@ -187,7 +187,6 @@ export const useMultipleTabStore = defineStore({
       if (path !== tab.path) {
         // Closed is not the activation tab
         close(tab);
-        this.updateCacheTab();
         return;
       }
 

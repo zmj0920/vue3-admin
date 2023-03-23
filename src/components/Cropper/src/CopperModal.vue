@@ -129,7 +129,6 @@
     uploadApi: {
       type: Function as PropType<(params: apiFunParams) => Promise<any>>,
     },
-    src: { type: String },
   };
 
   export default defineComponent({
@@ -139,7 +138,7 @@
     emits: ['uploadSuccess', 'register'],
     setup(props, { emit }) {
       let filename = '';
-      const src = ref(props.src || '');
+      const src = ref('');
       const previewSource = ref('');
       const cropper = ref<Cropper>();
       let scaleX = 1;
@@ -187,7 +186,7 @@
           try {
             setModalProps({ confirmLoading: true });
             const result = await uploadApi({ name: 'file', file: blob, filename });
-            emit('uploadSuccess', { source: previewSource.value, data: result.url });
+            emit('uploadSuccess', { source: previewSource.value, data: result.data });
             closeModal();
           } finally {
             setModalProps({ confirmLoading: false });

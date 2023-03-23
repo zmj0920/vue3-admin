@@ -101,8 +101,8 @@
           if (!meta) {
             return !!name;
           }
-          const { title, hideBreadcrumb, hideMenu } = meta;
-          if (!title || hideBreadcrumb || hideMenu) {
+          const { title, hideBreadcrumb } = meta;
+          if (!title || hideBreadcrumb) {
             return false;
           }
           return true;

@@ -3,7 +3,7 @@ import { dateUtil } from '/@/utils/dateUtil';
 import { unref } from 'vue';
 import type { Ref, ComputedRef } from 'vue';
 import type { FormProps, FormSchema } from '../types/form';
-import { cloneDeep, set } from 'lodash-es';
+import { set } from 'lodash-es';
 
 interface UseFormValuesContext {
   defaultValueRef: Ref<any>;
@@ -11,43 +11,6 @@ interface UseFormValuesContext {
   getProps: ComputedRef<FormProps>;
   formModel: Recordable;
 }
-
-/**
- * @desription deconstruct array-link key. This method will mutate the target.
- */
-function tryDeconstructArray(key: string, value: any, target: Recordable) {
-  const pattern = /^\[(.+)\]$/;
-  if (pattern.test(key)) {
-    const match = key.match(pattern);
-    if (match && match[1]) {
-      const keys = match[1].split(',');
-      value = Array.isArray(value) ? value : [value];
-      keys.forEach((k, index) => {
-        set(target, k.trim(), value[index]);
-      });
-      return true;
-    }
-  }
-}
-
-/**
- * @desription deconstruct object-link key. This method will mutate the target.
- */
-function tryDeconstructObject(key: string, value: any, target: Recordable) {
-  const pattern = /^\{(.+)\}$/;
-  if (pattern.test(key)) {
-    const match = key.match(pattern);
-    if (match && match[1]) {
-      const keys = match[1].split(',');
-      value = isObject(value) ? value : {};
-      keys.forEach((k) => {
-        set(target, k.trim(), value[k.trim()]);
-      });
-      return true;
-    }
-  }
-}
-
 export function useFormValues({
   defaultValueRef,
   getSchema,
@@ -70,23 +33,14 @@ export function useFormValues({
       if (isObject(value)) {
         value = transformDateFunc?.(value);
       }
-
-      if (isArray(value) && value[0]?.format && value[1]?.format) {
+      if (isArray(value) && value[0]?._isAMomentObject && value[1]?._isAMomentObject) {
         value = value.map((item) => transformDateFunc?.(item));
       }
       // Remove spaces
       if (isString(value)) {
-        // remove params from URL
-        if(value === '') {
-          value = undefined;
-        }else {
-          value = value.trim();
-        }
+        value = value.trim();
       }
-      if (!tryDeconstructArray(key, value, res) && !tryDeconstructObject(key, value, res)) {
-        // 没有解构成功的，按原样赋值
-        set(res, key, value);
-      }
+      set(res, key, value);
     }
     return handleRangeTimeValue(res);
   }
@@ -102,21 +56,14 @@ export function useFormValues({
     }
 
     for (const [field, [startTimeKey, endTimeKey], format = 'YYYY-MM-DD'] of fieldMapToTime) {
-      if (!field || !startTimeKey || !endTimeKey) {
-        continue;
-      }
-      // If the value to be converted is empty, remove the field
-      if (!values[field]) {
-        Reflect.deleteProperty(values, field);
+      if (!field || !startTimeKey || !endTimeKey || !values[field]) {
         continue;
       }
 
       const [startTime, endTime]: string[] = values[field];
 
-      const [startTimeFormat, endTimeFormat] = Array.isArray(format) ? format : [format, format];
-
-      values[startTimeKey] = dateUtil(startTime).format(startTimeFormat);
-      values[endTimeKey] = dateUtil(endTime).format(endTimeFormat);
+      values[startTimeKey] = dateUtil(startTime).format(format);
+      values[endTimeKey] = dateUtil(endTime).format(format);
       Reflect.deleteProperty(values, field);
     }
 
@@ -130,13 +77,10 @@ export function useFormValues({
       const { defaultValue } = item;
       if (!isNullOrUnDef(defaultValue)) {
         obj[item.field] = defaultValue;
-
-        if (formModel[item.field] === undefined) {
-          formModel[item.field] = defaultValue;
-        }
+        formModel[item.field] = defaultValue;
       }
     });
-    defaultValueRef.value = cloneDeep(obj);
+    defaultValueRef.value = obj;
   }
 
   return { handleFormValues, initDefault };

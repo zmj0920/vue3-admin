@@ -79,8 +79,8 @@ export function useForm(props?: Props): UseFormReturnType {
       });
     },
 
-    removeSchemaByField: async (field: string | string[]) => {
-      unref(formRef)?.removeSchemaByField(field);
+    removeSchemaByFiled: async (field: string | string[]) => {
+      unref(formRef)?.removeSchemaByFiled(field);
     },
 
     // TODO promisify
@@ -94,7 +94,7 @@ export function useForm(props?: Props): UseFormReturnType {
     },
 
     appendSchemaByField: async (
-      schema: FormSchema | FormSchema[],
+      schema: FormSchema,
       prefixField: string | undefined,
       first: boolean,
     ) => {

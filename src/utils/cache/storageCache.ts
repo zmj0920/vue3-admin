@@ -1,6 +1,9 @@
 import { cacheCipher } from '/@/settings/encryptionSetting';
+
 import type { EncryptionParams } from '/@/utils/cipher';
+
 import { AesEncryption } from '/@/utils/cipher';
+
 import { isNullOrUnDef } from '/@/utils/is';
 
 export interface CreateStorageParams extends EncryptionParams {
@@ -24,8 +27,8 @@ export const createStorage = ({
   const encryption = new AesEncryption({ key, iv });
 
   /**
-   * Cache class
-   * Construction parameters can be passed into sessionStorage, localStorage,
+   *Cache class
+   *Construction parameters can be passed into sessionStorage, localStorage,
    * @class Cache
    * @example
    */
@@ -50,10 +53,11 @@ export const createStorage = ({
     }
 
     /**
-     * Set cache
+     *
+     *  Set cache
      * @param {string} key
      * @param {*} value
-     * @param {*} expire Expiration time in seconds
+     * @expire Expiration time in seconds
      * @memberof Cache
      */
     set(key: string, value: any, expire: number | null = timeout) {
@@ -69,9 +73,8 @@ export const createStorage = ({
     }
 
     /**
-     * Read cache
+     *Read cache
      * @param {string} key
-     * @param {*} def
      * @memberof Cache
      */
     get(key: string, def: any = null): any {

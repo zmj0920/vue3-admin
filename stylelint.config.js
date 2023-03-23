@@ -1,15 +1,14 @@
 module.exports = {
   root: true,
   plugins: ['stylelint-order'],
+  customSyntax: 'postcss-less',
   extends: ['stylelint-config-standard', 'stylelint-config-prettier'],
-  customSyntax: 'postcss-html',
   rules: {
-    'function-no-unknown': null,
     'selector-class-pattern': null,
     'selector-pseudo-class-no-unknown': [
       true,
       {
-        ignorePseudoClasses: ['global', 'deep'],
+        ignorePseudoClasses: ['global'],
       },
     ],
     'selector-pseudo-element-no-unknown': [
@@ -36,7 +35,6 @@ module.exports = {
       },
     ],
     'no-empty-source': null,
-    'string-quotes': null,
     'named-grid-areas-no-invalid': null,
     'unicode-bom': 'never',
     'no-descending-specificity': null,
@@ -73,10 +71,9 @@ module.exports = {
   ignoreFiles: ['**/*.js', '**/*.jsx', '**/*.tsx', '**/*.ts'],
   overrides: [
     {
-      files: ['*.vue', '**/*.vue', '*.html', '**/*.html'],
-      extends: ['stylelint-config-recommended'],
+      files: ['*.vue', '**/*.vue'],
+      extends: ['stylelint-config-recommended', 'stylelint-config-html'],
       rules: {
-        'keyframes-name-pattern': null,
         'selector-pseudo-class-no-unknown': [
           true,
           {
@@ -90,11 +87,6 @@ module.exports = {
           },
         ],
       },
-    },
-    {
-      files: ['*.less', '**/*.less'],
-      customSyntax: 'postcss-less',
-      extends: ['stylelint-config-standard', 'stylelint-config-recommended-vue'],
     },
   ],
 };

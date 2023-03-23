@@ -22,7 +22,7 @@
 
     <CopperModal
       @register="register"
-      @upload-success="handleUploadSuccess"
+      @uploadSuccess="handleUploadSuccess"
       :uploadApi="uploadApi"
       :src="sourceValue"
     />
@@ -91,9 +91,9 @@
         },
       );
 
-      function handleUploadSuccess({ source, data }) {
+      function handleUploadSuccess({ source }) {
         sourceValue.value = source;
-        emit('change', { source, data });
+        emit('change', source);
         createMessage.success(t('component.cropper.uploadSuccess'));
       }
 

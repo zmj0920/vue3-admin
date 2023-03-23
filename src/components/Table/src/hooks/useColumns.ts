@@ -1,7 +1,7 @@
 import type { BasicColumn, BasicTableProps, CellFormat, GetColumnsParams } from '../types/table';
 import type { PaginationProps } from '../types/pagination';
 import type { ComputedRef } from 'vue';
-import { computed, Ref, ref, reactive, toRaw, unref, watch } from 'vue';
+import { computed, Ref, ref, toRaw, unref, watch } from 'vue';
 import { renderEditCell } from '../components/editable';
 import { usePermission } from '/@/hooks/web/usePermission';
 import { useI18n } from '/@/hooks/web/useI18n';
@@ -146,38 +146,31 @@ export function useColumns(
   const getViewColumns = computed(() => {
     const viewColumns = sortFixedColumn(unref(getColumnsRef));
 
-    const mapFn = (column) => {
-      const { slots, customRender, format, edit, editRow, flag } = column;
-
-      if (!slots || !slots?.title) {
-        // column.slots = { title: `header-${dataIndex}`, ...(slots || {}) };
-        column.customTitle = column.title;
-        Reflect.deleteProperty(column, 'title');
-      }
-      const isDefaultAction = [INDEX_COLUMN_FLAG, ACTION_COLUMN_FLAG].includes(flag!);
-      if (!customRender && format && !edit && !isDefaultAction) {
-        column.customRender = ({ text, record, index }) => {
-          return formatCell(text, format, record, index);
-        };
-      }
-
-      // edit table
-      if ((edit || editRow) && !isDefaultAction) {
-        column.customRender = renderEditCell(column);
-      }
-      return reactive(column);
-    };
-
     const columns = cloneDeep(viewColumns);
     return columns
-      .filter((column) => hasPermission(column.auth) && isIfShow(column))
+      .filter((column) => {
+        return hasPermission(column.auth) && isIfShow(column);
+      })
       .map((column) => {
-        // Support table multiple header editable
-        if (column.children?.length) {
-          column.children = column.children.map(mapFn);
+        const { slots, dataIndex, customRender, format, edit, editRow, flag } = column;
+
+        if (!slots || !slots?.title) {
+          column.slots = { title: `header-${dataIndex}`, ...(slots || {}) };
+          column.customTitle = column.title;
+          Reflect.deleteProperty(column, 'title');
+        }
+        const isDefaultAction = [INDEX_COLUMN_FLAG, ACTION_COLUMN_FLAG].includes(flag!);
+        if (!customRender && format && !edit && !isDefaultAction) {
+          column.customRender = ({ text, record, index }) => {
+            return formatCell(text, format, record, index);
+          };
         }
 
-        return mapFn(column);
+        // edit table
+        if ((edit || editRow) && !isDefaultAction) {
+          column.customRender = renderEditCell(column);
+        }
+        return column;
       });
   });
 
@@ -204,7 +197,7 @@ export function useColumns(
    * set columns
    * @param columnList key｜column
    */
-  function setColumns(columnList: Partial<BasicColumn>[] | (string | string[])[]) {
+  function setColumns(columnList: Partial<BasicColumn>[] | string[]) {
     const columns = cloneDeep(columnList);
     if (!isArray(columns)) return;
 
@@ -217,23 +210,31 @@ export function useColumns(
 
     const cacheKeys = cacheColumns.map((item) => item.dataIndex);
 
-    if (!isString(firstColumn) && !isArray(firstColumn)) {
+    if (!isString(firstColumn)) {
       columnsRef.value = columns as BasicColumn[];
     } else {
-      const columnKeys = (columns as (string | string[])[]).map((m) => m.toString());
+      const columnKeys = columns as string[];
       const newColumns: BasicColumn[] = [];
       cacheColumns.forEach((item) => {
-        newColumns.push({
-          ...item,
-          defaultHidden: !columnKeys.includes(item.dataIndex?.toString() || (item.key as string)),
-        });
+        if (columnKeys.includes(item.dataIndex! || (item.key as string))) {
+          newColumns.push({
+            ...item,
+            defaultHidden: false,
+          });
+        } else {
+          newColumns.push({
+            ...item,
+            defaultHidden: true,
+          });
+        }
       });
+
       // Sort according to another array
       if (!isEqual(cacheKeys, columns)) {
         newColumns.sort((prev, next) => {
           return (
-            columnKeys.indexOf(prev.dataIndex?.toString() as string) -
-            columnKeys.indexOf(next.dataIndex?.toString() as string)
+            cacheKeys.indexOf(prev.dataIndex as string) -
+            cacheKeys.indexOf(next.dataIndex as string)
           );
         });
       }
@@ -305,7 +306,7 @@ export function formatCell(text: string, format: CellFormat, record: Recordable,
   try {
     // date type
     const DATE_FORMAT_PREFIX = 'date|';
-    if (isString(format) && format.startsWith(DATE_FORMAT_PREFIX) && text) {
+    if (isString(format) && format.startsWith(DATE_FORMAT_PREFIX)) {
       const dateFormat = format.replace(DATE_FORMAT_PREFIX, '');
 
       if (!dateFormat) {

@@ -1,30 +1,26 @@
 import type { Ref } from 'vue';
 
-import { computed, unref, onMounted, nextTick } from 'vue';
+import { computed, unref, onMounted, nextTick, ref } from 'vue';
 
 import { TriggerEnum } from '/@/enums/menuEnum';
 
 import { useMenuSetting } from '/@/hooks/setting/useMenuSetting';
 import { useDebounceFn } from '@vueuse/core';
-import { useAppStore } from '/@/store/modules/app';
 
 /**
  * Handle related operations of menu events
  */
 export function useSiderEvent() {
-  const appStore = useAppStore();
+  const brokenRef = ref(false);
+
   const { getMiniWidthNumber } = useMenuSetting();
 
   const getCollapsedWidth = computed(() => {
-    return unref(getMiniWidthNumber);
+    return unref(brokenRef) ? 0 : unref(getMiniWidthNumber);
   });
 
   function onBreakpointChange(broken: boolean) {
-    appStore.setProjectConfig({
-      menuSetting: {
-        siderHidden: broken,
-      },
-    });
+    brokenRef.value = broken;
   }
 
   return { getCollapsedWidth, onBreakpointChange };

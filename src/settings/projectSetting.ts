@@ -83,8 +83,6 @@ const setting: ProjectConfig = {
     fixed: true,
     // Menu collapse
     collapsed: false,
-    // When sider hide because of the responsive layout
-    siderHidden: false,
     // Whether to display the menu name when folding the menu
     collapsedShowTitle: false,
     // Whether it can be dragged
@@ -136,7 +134,7 @@ const setting: ProjectConfig = {
   // Transition Setting
   transitionSetting: {
     //  Whether to open the page switching animation
-    // The disabled state will also disable pageLoading
+    // The disabled state will also disable pageLoadinng
     enable: true,
 
     // Route basic switching animation

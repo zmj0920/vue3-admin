@@ -1,7 +1,6 @@
 <template>
   <div ref="wrapRef" :class="getWrapperClass">
     <BasicForm
-      ref="formRef"
       submitOnReset
       v-bind="getFormProps"
       v-if="getBindValues.useSearchForm"
@@ -25,16 +24,10 @@
       <template #[item]="data" v-for="item in Object.keys($slots)" :key="item">
         <slot :name="item" v-bind="data || {}"></slot>
       </template>
-      <template #headerCell="{ column }">
+
+      <template #[`header-${column.dataIndex}`] v-for="column in columns" :key="column.dataIndex">
         <HeaderCell :column="column" />
       </template>
-      <!-- 增加对antdv3.x兼容 -->
-      <template #bodyCell="data">
-        <slot name="bodyCell" v-bind="data || {}"></slot>
-      </template>
-      <!--      <template #[`header-${column.dataIndex}`] v-for="(column, index) in columns" :key="index">-->
-      <!--        <HeaderCell :column="column" />-->
-      <!--      </template>-->
     </Table>
   </div>
 </template>
@@ -50,6 +43,7 @@
   import { Table } from 'ant-design-vue';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { PageWrapperFixedHeightKey } from '/@/components/Page';
+  import expandIcon from './components/ExpandIcon';
   import HeaderCell from './components/HeaderCell.vue';
   import { InnerHandlers } from './types/table';
 
@@ -59,7 +53,6 @@
   import { useLoading } from './hooks/useLoading';
   import { useRowSelection } from './hooks/useRowSelection';
   import { useTableScroll } from './hooks/useTableScroll';
-  import { useTableScrollTo } from './hooks/useScrollTo';
   import { useCustomRow } from './hooks/useCustomRow';
   import { useTableStyle } from './hooks/useTableStyle';
   import { useTableHeader } from './hooks/useTableHeader';
@@ -75,7 +68,6 @@
   import { warn } from '/@/utils/log';
 
   export default defineComponent({
-    name: 'BasicTable',
     components: {
       Table,
       BasicForm,
@@ -105,7 +97,6 @@
       const tableData = ref<Recordable[]>([]);
 
       const wrapRef = ref(null);
-      const formRef = ref(null);
       const innerPropsRef = ref<Partial<BasicTableProps>>();
 
       const { prefixCls } = useDesign('basic-table');
@@ -137,7 +128,6 @@
         getRowSelection,
         getRowSelectionRef,
         getSelectRows,
-        setSelectedRows,
         clearSelectedRowKeys,
         getSelectRowKeys,
         deleteSelectRowByKey,
@@ -195,11 +185,7 @@
         getColumnsRef,
         getRowSelectionRef,
         getDataSourceRef,
-        wrapRef,
-        formRef,
       );
-
-      const { scrollTo } = useTableScrollTo(tableElRef, getDataSourceRef);
 
       const { customRow } = useCustomRow(getProps, {
         setSelectedRowKeys,
@@ -211,11 +197,7 @@
 
       const { getRowClassName } = useTableStyle(getProps, prefixCls);
 
-      const { getExpandOption, expandAll, expandRows, collapseAll } = useTableExpand(
-        getProps,
-        tableData,
-        emit,
-      );
+      const { getExpandOption, expandAll, collapseAll } = useTableExpand(getProps, tableData, emit);
 
       const handlers: InnerHandlers = {
         onColumnsChange: (data: ColumnChangeParam[]) => {
@@ -240,8 +222,10 @@
       const getBindValues = computed(() => {
         const dataSource = unref(getDataSourceRef);
         let propsData: Recordable = {
+          // ...(dataSource.length === 0 ? { getPopupContainer: () => document.body } : {}),
           ...attrs,
           customRow,
+          expandIcon: slots.expandIcon ? null : expandIcon(),
           ...unref(getProps),
           ...unref(getHeaderProps),
           scroll: unref(getScrollRef),
@@ -255,9 +239,9 @@
           footer: unref(getFooterProps),
           ...unref(getExpandOption),
         };
-        // if (slots.expandedRowRender) {
-        //   propsData = omit(propsData, 'scroll');
-        // }
+        if (slots.expandedRowRender) {
+          propsData = omit(propsData, 'scroll');
+        }
 
         propsData = omit(propsData, ['class', 'onChange']);
         return propsData;
@@ -290,7 +274,6 @@
       const tableAction: TableActionType = {
         reload,
         getSelectRows,
-        setSelectedRows,
         clearSelectedRowKeys,
         getSelectRowKeys,
         deleteSelectRowByKey,
@@ -317,9 +300,7 @@
         getShowPagination,
         setCacheColumnsByField,
         expandAll,
-        expandRows,
         collapseAll,
-        scrollTo,
         getSize: () => {
           return unref(getBindValues).size as SizeType;
         },
@@ -331,7 +312,6 @@
       emit('register', tableAction, formActions);
 
       return {
-        formRef,
         tableElRef,
         getBindValues,
         getLoading,
@@ -366,7 +346,6 @@
 
   .@{prefix-cls} {
     max-width: 100%;
-    height: 100%;
 
     &-row__striped {
       td {
@@ -378,7 +357,6 @@
       padding: 16px;
 
       .ant-form {
-        width: 100%;
         padding: 12px 10px 6px;
         margin-bottom: 16px;
         background-color: @component-background;

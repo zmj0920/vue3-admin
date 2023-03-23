@@ -53,21 +53,11 @@ const staticMenus: Menu[] = [];
 
 async function getAsyncMenus() {
   const permissionStore = usePermissionStore();
-  //递归过滤所有隐藏的菜单
-  const menuFilter = (items) => {
-    return items.filter((item) => {
-      const show = !item.meta?.hideMenu && !item.hideMenu;
-      if (show && item.children) {
-        item.children = menuFilter(item.children);
-      }
-      return show;
-    });
-  };
   if (isBackMode()) {
-    return menuFilter(permissionStore.getBackMenuList);
+    return permissionStore.getBackMenuList.filter((item) => !item.meta?.hideMenu && !item.hideMenu);
   }
   if (isRouteMappingMode()) {
-    return menuFilter(permissionStore.getFrontMenuList);
+    return permissionStore.getFrontMenuList.filter((item) => !item.hideMenu);
   }
   return staticMenus;
 }

@@ -1,6 +1,7 @@
 import type { Ref } from 'vue';
-import { computed, unref } from 'vue';
 import type { FormProps, FormSchema } from '../types/form';
+
+import { computed, unref } from 'vue';
 import { isNumber } from '/@/utils/is';
 
 export function useItemLabelWidth(schemaItemRef: Ref<FormSchema>, propsRef: Ref<FormProps>) {
@@ -13,7 +14,6 @@ export function useItemLabelWidth(schemaItemRef: Ref<FormSchema>, propsRef: Ref<
       labelWidth: globalLabelWidth,
       labelCol: globalLabelCol,
       wrapperCol: globWrapperCol,
-      layout,
     } = unref(propsRef);
 
     // If labelWidth is set globally, all items setting
@@ -33,10 +33,7 @@ export function useItemLabelWidth(schemaItemRef: Ref<FormSchema>, propsRef: Ref<
 
     return {
       labelCol: { style: { width }, ...col },
-      wrapperCol: {
-        style: { width: layout === 'vertical' ? '100%' : `calc(100% - ${width})` },
-        ...wrapCol,
-      },
+      wrapperCol: { style: { width: `calc(100% - ${width})` }, ...wrapCol },
     };
   });
 }

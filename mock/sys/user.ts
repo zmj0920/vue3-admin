@@ -7,7 +7,7 @@ export function createFakeUserList() {
       userId: '1',
       username: 'vben',
       realName: 'Vben Admin',
-      avatar: '',
+      avatar: 'https://q1.qlogo.cn/g?b=qq&nk=190848757&s=640',
       desc: 'manager',
       password: '123456',
       token: 'fakeToken1',
@@ -24,7 +24,7 @@ export function createFakeUserList() {
       username: 'test',
       password: '123456',
       realName: 'test user',
-      avatar: '',
+      avatar: 'https://q1.qlogo.cn/g?b=qq&nk=339449197&s=640',
       desc: 'tester',
       token: 'fakeToken2',
       homePath: '/dashboard/workbench',
@@ -109,14 +109,6 @@ export default [
         return resultError('Invalid token!');
       }
       return resultSuccess(undefined, { message: 'Token has been destroyed' });
-    },
-  },
-  {
-    url: '/basic-api/testRetry',
-    statusCode: 405,
-    method: 'get',
-    response: () => {
-      return resultError('Error!');
     },
   },
 ] as MockMethod[];

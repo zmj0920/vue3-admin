@@ -29,7 +29,7 @@ export function extendSlots(slots: Slots, excludeKeys: string[] = []) {
     if (excludeKeys.includes(key)) {
       return null;
     }
-    ret[key] = (data?: any) => getSlot(slots, key, data);
+    ret[key] = () => getSlot(slots, key);
   });
   return ret;
 }

@@ -6,7 +6,7 @@
     :openKeys="getOpenKeys"
     :inlineIndent="inlineIndent"
     :theme="theme"
-    @open-change="handleOpenChange"
+    @openChange="handleOpenChange"
     :class="getMenuClass"
     @click="handleMenuClick"
     :subMenuOpenDelay="0.2"

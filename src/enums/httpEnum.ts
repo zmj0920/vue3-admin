@@ -3,7 +3,7 @@
  */
 export enum ResultEnum {
   SUCCESS = 0,
-  ERROR = -1,
+  ERROR = 1,
   TIMEOUT = 401,
   TYPE = 'success',
 }
@@ -19,7 +19,7 @@ export enum RequestEnum {
 }
 
 /**
- * @description:  contentType
+ * @description:  contentTyp
  */
 export enum ContentTypeEnum {
   // json

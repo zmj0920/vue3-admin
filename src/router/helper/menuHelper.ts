@@ -11,18 +11,14 @@ export function getAllParentPath<T = Recordable>(treeData: T[], path: string) {
   return (menuList || []).map((item) => item.path);
 }
 
-// 路径处理
 function joinParentPath(menus: Menu[], parentPath = '') {
   for (let index = 0; index < menus.length; index++) {
     const menu = menus[index];
     // https://next.router.vuejs.org/guide/essentials/nested-routes.html
     // Note that nested paths that start with / will be treated as a root path.
-    // 请注意，以 / 开头的嵌套路径将被视为根路径。
     // This allows you to leverage the component nesting without having to use a nested URL.
-    // 这允许你利用组件嵌套，而无需使用嵌套 URL。
     if (!(menu.path.startsWith('/') || isUrl(menu.path))) {
       // path doesn't start with /, nor is it a url, join parent path
-      // 路径不以 / 开头，也不是 url，加入父路径
       menu.path = `${parentPath}/${menu.path}`;
     }
     if (menu?.children?.length) {
@@ -41,18 +37,14 @@ export function transformMenuModule(menuModule: MenuModule): Menu {
   return menuList[0];
 }
 
-// 将路由转换成菜单
 export function transformRouteToMenu(routeModList: AppRouteModule[], routerMapping = false) {
-  // 借助 lodash 深拷贝
   const cloneRouteModList = cloneDeep(routeModList);
   const routeList: AppRouteRecordRaw[] = [];
 
-  // 对路由项进行修改
   cloneRouteModList.forEach((item) => {
     if (routerMapping && item.meta.hideChildrenInMenu && typeof item.redirect === 'string') {
       item.path = item.redirect;
     }
-
     if (item.meta?.single) {
       const realItem = item?.children?.[0];
       realItem && routeList.push(realItem);
@@ -60,7 +52,6 @@ export function transformRouteToMenu(routeModList: AppRouteModule[], routerMappi
       routeList.push(item);
     }
   });
-  // 提取树指定结构
   const list = treeMap(routeList, {
     conversion: (node: AppRouteRecordRaw) => {
       const { meta: { title, hideMenu = false } = {} } = node;
@@ -75,7 +66,6 @@ export function transformRouteToMenu(routeModList: AppRouteModule[], routerMappi
       };
     },
   });
-  // 路径处理
   joinParentPath(list);
   return cloneDeep(list);
 }
@@ -84,7 +74,6 @@ export function transformRouteToMenu(routeModList: AppRouteModule[], routerMappi
  * config menu with given params
  */
 const menuParamRegex = /(?::)([\s\S]+?)((?=\/)|$)/g;
-
 export function configureDynamicParamsMenu(menu: Menu, params: RouteParams) {
   const { path, paramPath } = toRaw(menu);
   let realPath = paramPath ? paramPath : path;

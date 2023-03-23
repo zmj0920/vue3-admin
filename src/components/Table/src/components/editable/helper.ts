@@ -7,7 +7,7 @@ const { t } = useI18n();
  * @description: 生成placeholder
  */
 export function createPlaceholderMessage(component: ComponentType) {
-  if (component.includes('Input') || component.includes('AutoComplete')) {
+  if (component.includes('Input')) {
     return t('common.inputText');
   }
   if (component.includes('Picker')) {

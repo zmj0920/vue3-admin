@@ -1,4 +1,6 @@
-module.exports = {
+// @ts-check
+const { defineConfig } = require('eslint-define-config');
+module.exports = defineConfig({
   root: true,
   env: {
     browser: true,
@@ -18,7 +20,9 @@ module.exports = {
   extends: [
     'plugin:vue/vue3-recommended',
     'plugin:@typescript-eslint/recommended',
+    'prettier',
     'plugin:prettier/recommended',
+    'plugin:jest/recommended',
   ],
   rules: {
     'vue/script-setup-uses-vars': 'error',
@@ -51,6 +55,8 @@ module.exports = {
     'space-before-function-paren': 'off',
 
     'vue/attributes-order': 'off',
+    'vue/v-on-event-hyphenation': 'off',
+    'vue/multi-word-component-names': 'off',
     'vue/one-component-per-file': 'off',
     'vue/html-closing-bracket-newline': 'off',
     'vue/max-attributes-per-line': 'off',
@@ -58,7 +64,6 @@ module.exports = {
     'vue/singleline-html-element-content-newline': 'off',
     'vue/attribute-hyphenation': 'off',
     'vue/require-default-prop': 'off',
-    'vue/require-explicit-emits': 'off',
     'vue/html-self-closing': [
       'error',
       {
@@ -71,6 +76,5 @@ module.exports = {
         math: 'always',
       },
     ],
-    'vue/multi-word-component-names': 'off',
   },
-};
+});

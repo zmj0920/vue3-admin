@@ -3,7 +3,7 @@
     :tab-list="tabListTitle"
     v-bind="$attrs"
     :active-tab-key="activeKey"
-    @tab-change="onTabChange"
+    @tabChange="onTabChange"
   >
     <p v-if="activeKey === 'tab1'">
       <VisitAnalysis />

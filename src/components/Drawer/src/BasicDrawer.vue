@@ -94,7 +94,7 @@
             opt.width = '100%';
           }
           const detailCls = `${prefixCls}__detail`;
-          opt.class = wrapClassName ? `${wrapClassName} ${detailCls}` : detailCls;
+          opt.wrapClassName = wrapClassName ? `${wrapClassName} ${detailCls}` : detailCls;
 
           if (!getContainer) {
             // TODO type error?

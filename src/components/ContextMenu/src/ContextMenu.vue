@@ -1,6 +1,6 @@
 <script lang="tsx">
   import type { ContextMenuItem, ItemContentProps, Axis } from './typing';
-  import type { FunctionalComponent, CSSProperties, PropType } from 'vue';
+  import type { FunctionalComponent, CSSProperties } from 'vue';
   import { defineComponent, nextTick, onMounted, computed, ref, unref, onUnmounted } from 'vue';
   import Icon from '/@/components/Icon';
   import { Menu, Divider } from 'ant-design-vue';
@@ -60,11 +60,9 @@
         const top = body.clientHeight < y + menuHeight ? y - menuHeight : y;
         return {
           ...styles,
-          position: 'absolute',
           width: `${width}px`,
           left: `${left + 1}px`,
           top: `${top + 1}px`,
-          zIndex: 9999,
         };
       });
 
@@ -89,8 +87,7 @@
       }
 
       function renderMenuItem(items: ContextMenuItem[]) {
-        const visibleItems = items.filter((item) => !item.hidden);
-        return visibleItems.map((item) => {
+        return items.map((item) => {
           const { disabled, label, children, divider = false } = item;
 
           const contentProps = {
@@ -127,11 +124,15 @@
         }
         const { items } = props;
         return (
-          <div class={prefixCls}>
-            <Menu inlineIndent={12} mode="vertical" ref={wrapRef} style={unref(getStyle)}>
-              {renderMenuItem(items)}
-            </Menu>
-          </div>
+          <Menu
+            inlineIndent={12}
+            mode="vertical"
+            class={prefixCls}
+            ref={wrapRef}
+            style={unref(getStyle)}
+          >
+            {renderMenuItem(items)}
+          </Menu>
         );
       };
     },
@@ -184,9 +185,6 @@
     background-clip: padding-box;
     user-select: none;
 
-    &__item {
-      margin: 0 !important;
-    }
     .item-style();
 
     .ant-divider {

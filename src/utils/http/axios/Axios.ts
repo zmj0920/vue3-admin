@@ -61,7 +61,7 @@ export class VAxios {
   }
 
   /**
-   * @description: Interceptor configuration 拦截器配置
+   * @description: Interceptor configuration
    */
   private setupInterceptors() {
     const transform = this.getTransform();
@@ -80,8 +80,11 @@ export class VAxios {
     // Request interceptor configuration processing
     this.axiosInstance.interceptors.request.use((config: AxiosRequestConfig) => {
       // If cancel repeat request is turned on, then cancel repeat request is prohibited
-      // @ts-ignore
-      const { ignoreCancelToken } = config.requestOptions;
+      const {
+        // @ts-ignore
+        headers: { ignoreCancelToken },
+      } = config;
+
       const ignoreCancel =
         ignoreCancelToken !== undefined
           ? ignoreCancelToken
@@ -111,10 +114,7 @@ export class VAxios {
     // Response result interceptor error capture
     responseInterceptorsCatch &&
       isFunction(responseInterceptorsCatch) &&
-      this.axiosInstance.interceptors.response.use(undefined, (error) => {
-        // @ts-ignore
-        return responseInterceptorsCatch(this.axiosInstance, error);
-      });
+      this.axiosInstance.interceptors.response.use(undefined, responseInterceptorsCatch);
   }
 
   /**
@@ -193,18 +193,13 @@ export class VAxios {
 
   request<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {
     let conf: CreateAxiosOptions = cloneDeep(config);
-    // cancelToken 如果被深拷贝，会导致最外层无法使用cancel方法来取消请求
-    if(config.cancelToken){
-        conf.cancelToken = config.cancelToken
-    }
-    
     const transform = this.getTransform();
 
     const { requestOptions } = this.options;
 
     const opt: RequestOptions = Object.assign({}, requestOptions, options);
 
-    const { beforeRequestHook, requestCatchHook, transformResponseHook } = transform || {};
+    const { beforeRequestHook, requestCatchHook, transformRequestHook } = transform || {};
     if (beforeRequestHook && isFunction(beforeRequestHook)) {
       conf = beforeRequestHook(conf, opt);
     }
@@ -216,9 +211,9 @@ export class VAxios {
       this.axiosInstance
         .request<any, AxiosResponse<Result>>(conf)
         .then((res: AxiosResponse<Result>) => {
-          if (transformResponseHook && isFunction(transformResponseHook)) {
+          if (transformRequestHook && isFunction(transformRequestHook)) {
             try {
-              const ret = transformResponseHook(res, opt);
+              const ret = transformRequestHook(res, opt);
               resolve(ret);
             } catch (err) {
               reject(err || new Error('request error!'));

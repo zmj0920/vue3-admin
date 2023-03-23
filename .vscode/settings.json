@@ -1,10 +1,16 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
   "volar.tsPlugin": true,
   "volar.tsPluginStatus": false,
-  "npm.packageManager": "pnpm",
+  //===========================================
+  //============= Editor ======================
+  //===========================================
   "editor.tabSize": 2,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  //===========================================
+  //============= files =======================
+  //===========================================
   "files.eol": "\n",
   "search.exclude": {
     "**/node_modules": true,
@@ -55,7 +61,7 @@
     "**/yarn.lock": true
   },
   "stylelint.enable": true,
-  "stylelint.validate": ["css", "less", "postcss", "scss", "vue", "sass"],
+  "stylelint.packageManager": "yarn",
   "path-intellisense.mappings": {
     "/@/": "${workspaceRoot}/src"
   },
@@ -88,8 +94,7 @@
   },
   "[vue]": {
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true,
-      "source.fixAll.stylelint": true
+      "source.fixAll.eslint": false
     }
   },
   "i18n-ally.localesPaths": ["src/locales/lang"],
@@ -132,29 +137,6 @@
     "lintstagedrc",
     "brotli",
     "tailwindcss",
-    "sider",
-    "pnpm",
-    "antd"
-  ],
-  "vetur.format.scriptInitialIndent": true,
-  "vetur.format.styleInitialIndent": true,
-  "vetur.validation.script": false,
-  "MicroPython.executeButton": [
-    {
-      "text": "▶",
-      "tooltip": "运行",
-      "alignment": "left",
-      "command": "extension.executeFile",
-      "priority": 3.5
-    }
-  ],
-  "MicroPython.syncButton": [
-    {
-      "text": "$(sync)",
-      "tooltip": "同步",
-      "alignment": "left",
-      "command": "extension.execute",
-      "priority": 4
-    }
+    "sider"
   ]
 }

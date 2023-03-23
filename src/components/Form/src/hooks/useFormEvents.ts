@@ -1,18 +1,10 @@
 import type { ComputedRef, Ref } from 'vue';
 import type { FormProps, FormSchema, FormActionType } from '../types/form';
 import type { NamePath } from 'ant-design-vue/lib/form/interface';
-import { unref, toRaw, nextTick } from 'vue';
-import {
-  isArray,
-  isFunction,
-  isObject,
-  isString,
-  isDef,
-  isNullOrUnDef,
-  isEmpty,
-} from '/@/utils/is';
+import { unref, toRaw } from 'vue';
+import { isArray, isFunction, isObject, isString } from '/@/utils/is';
 import { deepMerge } from '/@/utils';
-import { dateItemType, handleInputNumberValue, defaultValueComponents } from '../helper';
+import { dateItemType, handleInputNumberValue } from '../helper';
 import { dateUtil } from '/@/utils/dateUtil';
 import { cloneDeep, uniqBy } from 'lodash-es';
 import { error } from '/@/utils/log';
@@ -45,13 +37,9 @@ export function useFormEvents({
     if (!formEl) return;
 
     Object.keys(formModel).forEach((key) => {
-      const schema = unref(getSchema).find((item) => item.field === key);
-      const isInput = schema?.component && defaultValueComponents.includes(schema.component);
-      const defaultValue = cloneDeep(defaultValueRef.value[key]);
-      formModel[key] = isInput ? defaultValue || '' : defaultValue;
+      formModel[key] = defaultValueRef.value[key];
     });
-    nextTick(() => clearValidate());
-
+    clearValidate();
     emit('reset', toRaw(formModel));
     submitOnReset && handleSubmit();
   }
@@ -64,10 +52,6 @@ export function useFormEvents({
       .map((item) => item.field)
       .filter(Boolean);
 
-    // key 支持 a.b.c 的嵌套写法
-    const delimiter = '.';
-    const nestKeyArray = fields.filter((item) => String(item).indexOf(delimiter) >= 0);
-
     const validKeys: string[] = [];
     Object.keys(values).forEach((key) => {
       const schema = unref(getSchema).find((item) => item.field === key);
@@ -76,11 +60,6 @@ export function useFormEvents({
       const hasKey = Reflect.has(values, key);
 
       value = handleInputNumberValue(schema?.component, value);
-      const { componentProps } = schema || {};
-      let _props = componentProps as any;
-      if (typeof componentProps === 'function') {
-        _props = _props({ formModel: unref(formModel) });
-      }
       // 0| '' is allow
       if (hasKey && fields.includes(key)) {
         // time type
@@ -90,32 +69,19 @@ export function useFormEvents({
             for (const ele of value) {
               arr.push(ele ? dateUtil(ele) : null);
             }
-            unref(formModel)[key] = arr;
+            formModel[key] = arr;
           } else {
-            unref(formModel)[key] = value ? (_props?.valueFormat ? value : dateUtil(value)) : null;
+            const { componentProps } = schema || {};
+            let _props = componentProps as any;
+            if (typeof componentProps === 'function') {
+              _props = _props({ formModel });
+            }
+            formModel[key] = value ? (_props?.valueFormat ? value : dateUtil(value)) : null;
           }
         } else {
-          unref(formModel)[key] = value;
-        }
-        if (_props?.onChange) {
-          _props?.onChange(value);
+          formModel[key] = value;
         }
         validKeys.push(key);
-      } else {
-        nestKeyArray.forEach((nestKey: string) => {
-          try {
-            const value = nestKey.split('.').reduce((out, item) => out[item], values);
-            if (isDef(value)) {
-              unref(formModel)[nestKey] = unref(value);
-              validKeys.push(nestKey);
-            }
-          } catch (e) {
-            // key not exist
-            if (isDef(defaultValueRef.value[nestKey])) {
-              unref(formModel)[nestKey] = cloneDeep(unref(defaultValueRef.value[nestKey]));
-            }
-          }
-        });
       }
     });
     validateFields(validKeys).catch((_) => {});
@@ -123,7 +89,7 @@ export function useFormEvents({
   /**
    * @description: Delete based on field name
    */
-  async function removeSchemaByField(fields: string | string[]): Promise<void> {
+  async function removeSchemaByFiled(fields: string | string[]): Promise<void> {
     const schemaList: FormSchema[] = cloneDeep(unref(getSchema));
     if (!fields) {
       return;
@@ -134,7 +100,7 @@ export function useFormEvents({
       fieldList = [fields];
     }
     for (const field of fieldList) {
-      _removeSchemaByFeild(field, schemaList);
+      _removeSchemaByFiled(field, schemaList);
     }
     schemaRef.value = schemaList;
   }
@@ -142,7 +108,7 @@ export function useFormEvents({
   /**
    * @description: Delete based on field name
    */
-  function _removeSchemaByFeild(field: string, schemaList: FormSchema[]): void {
+  function _removeSchemaByFiled(field: string, schemaList: FormSchema[]): void {
     if (isString(field)) {
       const index = schemaList.findIndex((schema) => schema.field === field);
       if (index !== -1) {
@@ -155,26 +121,22 @@ export function useFormEvents({
   /**
    * @description: Insert after a certain field, if not insert the last
    */
-  async function appendSchemaByField(
-    schema: FormSchema | FormSchema[],
-    prefixField?: string,
-    first = false,
-  ) {
+  async function appendSchemaByField(schema: FormSchema, prefixField?: string, first = false) {
     const schemaList: FormSchema[] = cloneDeep(unref(getSchema));
 
     const index = schemaList.findIndex((schema) => schema.field === prefixField);
-    const _schemaList = isObject(schema) ? [schema as FormSchema] : (schema as FormSchema[]);
+    const hasInList = schemaList.some((item) => item.field === prefixField || schema.field);
+
+    if (!hasInList) return;
+
     if (!prefixField || index === -1 || first) {
-      first ? schemaList.unshift(..._schemaList) : schemaList.push(..._schemaList);
+      first ? schemaList.unshift(schema) : schemaList.push(schema);
       schemaRef.value = schemaList;
-      _setDefaultValue(schema);
       return;
     }
     if (index !== -1) {
-      schemaList.splice(index + 1, 0, ..._schemaList);
+      schemaList.splice(index + 1, 0, schema);
     }
-    _setDefaultValue(schema);
-
     schemaRef.value = schemaList;
   }
 
@@ -220,50 +182,17 @@ export function useFormEvents({
       return;
     }
     const schema: FormSchema[] = [];
-    unref(getSchema).forEach((val) => {
-      let _val;
-      updateData.forEach((item) => {
+    updateData.forEach((item) => {
+      unref(getSchema).forEach((val) => {
         if (val.field === item.field) {
-          _val = item;
+          const newSchema = deepMerge(val, item);
+          schema.push(newSchema as FormSchema);
+        } else {
+          schema.push(val);
         }
       });
-      if (_val !== undefined && val.field === _val.field) {
-        const newSchema = deepMerge(val, _val);
-        schema.push(newSchema as FormSchema);
-      } else {
-        schema.push(val);
-      }
     });
-    _setDefaultValue(schema);
-
     schemaRef.value = uniqBy(schema, 'field');
-  }
-
-  function _setDefaultValue(data: FormSchema | FormSchema[]) {
-    let schemas: FormSchema[] = [];
-    if (isObject(data)) {
-      schemas.push(data as FormSchema);
-    }
-    if (isArray(data)) {
-      schemas = [...data];
-    }
-
-    const obj: Recordable = {};
-    const currentFieldsValue = getFieldsValue();
-    schemas.forEach((item) => {
-      if (
-        item.component != 'Divider' &&
-        Reflect.has(item, 'field') &&
-        item.field &&
-        !isNullOrUnDef(item.defaultValue) &&
-        (!(item.field in currentFieldsValue) ||
-          isNullOrUnDef(currentFieldsValue[item.field]) ||
-          isEmpty(currentFieldsValue[item.field]))
-      ) {
-        obj[item.field] = item.defaultValue;
-      }
-    });
-    setFieldsValue(obj);
   }
 
   function getFieldsValue(): Recordable {
@@ -314,9 +243,6 @@ export function useFormEvents({
       const res = handleFormValues(values);
       emit('submit', res);
     } catch (error: any) {
-      if (error?.outOfDate === false && error?.errorFields) {
-        return;
-      }
       throw new Error(error);
     }
   }
@@ -330,7 +256,7 @@ export function useFormEvents({
     updateSchema,
     resetSchema,
     appendSchemaByField,
-    removeSchemaByField,
+    removeSchemaByFiled,
     resetFields,
     setFieldsValue,
     scrollToField,

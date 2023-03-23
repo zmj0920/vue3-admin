@@ -31,7 +31,18 @@
                   v-for="icon in getPaginationList"
                   :key="icon"
                   :class="currentSelect === icon ? 'border border-primary' : ''"
-                  class="p-2 w-1/8 cursor-pointer mr-1 mt-1 flex justify-center items-center border border-solid hover:border-primary"
+                  class="
+                    p-2
+                    w-1/8
+                    cursor-pointer
+                    mr-1
+                    mt-1
+                    flex
+                    justify-center
+                    items-center
+                    border border-solid
+                    hover:border-primary
+                  "
                   @click="handleClick(icon)"
                   :title="icon"
                 >
@@ -124,16 +135,7 @@
   const { prefixCls } = useDesign('icon-picker');
 
   const debounceHandleSearchChange = useDebounceFn(handleSearchChange, 100);
-
-  let clipboardRef;
-  let isSuccessRef;
-
-  if (props.copy) {
-    const clipboard = useCopyToClipboard(props.value);
-    clipboardRef = clipboard?.clipboardRef;
-    isSuccessRef = clipboard?.isSuccessRef;
-  }
-
+  const { clipboardRef, isSuccessRef } = useCopyToClipboard(props.value);
   const { createMessage } = useMessage();
 
   const { getPaginationList, getTotal, setCurrentPage } = usePagination(

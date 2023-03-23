@@ -27,8 +27,7 @@ export function formatRequestDate(params: Recordable) {
   }
 
   for (const key in params) {
-    const format = params[key]?.format ?? null;
-    if (format && typeof format === 'function') {
+    if (params[key] && params[key]._isAMomentObject) {
       params[key] = params[key].format(DATE_TIME_FORMAT);
     }
     if (isString(key)) {

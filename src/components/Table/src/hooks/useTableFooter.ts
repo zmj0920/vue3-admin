@@ -8,7 +8,7 @@ export function useTableFooter(
   propsRef: ComputedRef<BasicTableProps>,
   scrollRef: ComputedRef<{
     x: string | number | true;
-    y: string | number | null;
+    y: Nullable<number>;
     scrollToFirstRowOnChange: boolean;
   }>,
   tableElRef: Ref<ComponentRef>,
@@ -36,13 +36,14 @@ export function useTableFooter(
     nextTick(() => {
       const tableEl = unref(tableElRef);
       if (!tableEl) return;
-      const bodyDom = tableEl.$el.querySelector('.ant-table-content');
+      const bodyDomList = tableEl.$el.querySelectorAll('.ant-table-body');
+      const bodyDom = bodyDomList[0];
       useEventListener({
         el: bodyDom,
         name: 'scroll',
         listener: () => {
           const footerBodyDom = tableEl.$el.querySelector(
-            '.ant-table-footer .ant-table-content',
+            '.ant-table-footer .ant-table-body',
           ) as HTMLDivElement;
           if (!footerBodyDom || !bodyDom) return;
           footerBodyDom.scrollLeft = bodyDom.scrollLeft;

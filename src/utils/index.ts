@@ -1,9 +1,8 @@
 import type { RouteLocationNormalized, RouteRecordNormalized } from 'vue-router';
-import type { App, Component } from 'vue';
+import type { App, Plugin } from 'vue';
 
 import { unref } from 'vue';
 import { isObject } from '/@/utils/is';
-import { cloneDeep } from 'lodash-es';
 
 export const noop = () => {};
 
@@ -33,14 +32,12 @@ export function setObjToUrlParams(baseUrl: string, obj: any): string {
   return /\?$/.test(baseUrl) ? baseUrl + parameters : baseUrl.replace(/\/?$/, '?') + parameters;
 }
 
-// 深度合并
 export function deepMerge<T = any>(src: any = {}, target: any = {}): T {
   let key: string;
-  const res: any = cloneDeep(src);
   for (key in target) {
-    res[key] = isObject(res[key]) ? deepMerge(res[key], target[key]) : target[key];
+    src[key] = isObject(src[key]) ? deepMerge(src[key], target[key]) : (src[key] = target[key]);
   }
-  return res;
+  return src;
 }
 
 export function openWindow(
@@ -57,7 +54,7 @@ export function openWindow(
 }
 
 // dynamic use hook props
-export function getDynamicProps<T extends Record<string, unknown>, U>(props: T): Partial<U> {
+export function getDynamicProps<T, U>(props: T): Partial<U> {
   const ret: Recordable = {};
 
   Object.keys(props).map((key) => {
@@ -82,29 +79,13 @@ export function getRawRoute(route: RouteLocationNormalized): RouteLocationNormal
   };
 }
 
-// https://github.com/vant-ui/vant/issues/8302
-type EventShim = {
-  new (...args: any[]): {
-    $props: {
-      onClick?: (...args: any[]) => void;
-    };
-  };
-};
-
-export type WithInstall<T> = T & {
-  install(app: App): void;
-} & EventShim;
-
-export type CustomComponent = Component & { displayName?: string };
-
-export const withInstall = <T extends CustomComponent>(component: T, alias?: string) => {
-  (component as Record<string, unknown>).install = (app: App) => {
-    const compName = component.name || component.displayName;
-    if (!compName) return;
-    app.component(compName, component);
+export const withInstall = <T>(component: T, alias?: string) => {
+  const comp = component as any;
+  comp.install = (app: App) => {
+    app.component(comp.name || comp.displayName, component);
     if (alias) {
       app.config.globalProperties[alias] = component;
     }
   };
-  return component as WithInstall<T>;
+  return component as T & Plugin;
 };

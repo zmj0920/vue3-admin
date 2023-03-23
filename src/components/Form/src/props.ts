@@ -9,7 +9,7 @@ import { propTypes } from '/@/utils/propTypes';
 export const basicProps = {
   model: {
     type: Object as PropType<Recordable>,
-    default: () => ({}),
+    default: {},
   },
   // 标签宽度  固定宽度
   labelWidth: {
@@ -23,7 +23,7 @@ export const basicProps = {
   compact: propTypes.bool,
   // 表单配置规则
   schemas: {
-    type: Array as PropType<FormSchema[]>,
+    type: [Array] as PropType<FormSchema[]>,
     default: () => [],
   },
   mergeDynamicData: {
@@ -40,12 +40,11 @@ export const basicProps = {
   // 在INPUT组件上单击回车时，是否自动提交
   autoSubmitOnEnter: propTypes.bool.def(false),
   submitOnReset: propTypes.bool,
-  submitOnChange: propTypes.bool,
   size: propTypes.oneOf(['default', 'small', 'large']).def('default'),
   // 禁用表单
   disabled: propTypes.bool,
   emptySpan: {
-    type: [Number, Object] as PropType<number | Recordable>,
+    type: [Number, Object] as PropType<number>,
     default: 0,
   },
   // 是否显示收起展开按钮
@@ -54,7 +53,7 @@ export const basicProps = {
   transformDateFunc: {
     type: Function as PropType<Fn>,
     default: (date: any) => {
-      return date?.format?.('YYYY-MM-DD HH:mm:ss') ?? date;
+      return date._isAMomentObject ? date?.format('YYYY-MM-DD HH:mm:ss') : date;
     },
   },
   rulesMessageJoinLabel: propTypes.bool.def(true),

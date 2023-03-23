@@ -3,19 +3,15 @@ interface TreeHelperConfig {
   children: string;
   pid: string;
 }
-
-// 默认配置
 const DEFAULT_CONFIG: TreeHelperConfig = {
   id: 'id',
   children: 'children',
   pid: 'pid',
 };
 
-// 获取配置。  Object.assign 从一个或多个源对象复制到目标对象
 const getConfig = (config: Partial<TreeHelperConfig>) => Object.assign({}, DEFAULT_CONFIG, config);
 
 // tree from list
-// 列表中的树
 export function listToTree<T = any>(list: any[], config: Partial<TreeHelperConfig> = {}): T[] {
   const conf = getConfig(config) as TreeHelperConfig;
   const nodeMap = new Map();
@@ -28,7 +24,7 @@ export function listToTree<T = any>(list: any[], config: Partial<TreeHelperConfi
   }
   for (const node of list) {
     const parent = nodeMap.get(node[pid]);
-    (parent ? parent[children] : result).push(node);
+    (parent ? parent.children : result).push(node);
   }
   return result;
 }
@@ -127,24 +123,18 @@ export function findPathAll(tree: any, func: Fn, config: Partial<TreeHelperConfi
 export function filter<T = any>(
   tree: T[],
   func: (n: T) => boolean,
-  // Partial 将 T 中的所有属性设为可选
   config: Partial<TreeHelperConfig> = {},
 ): T[] {
-  // 获取配置
   config = getConfig(config);
   const children = config.children as string;
-
   function listFilter(list: T[]) {
     return list
       .map((node: any) => ({ ...node }))
       .filter((node) => {
-        // 递归调用 对含有children项  进行再次调用自身函数 listFilter
         node[children] = node[children] && listFilter(node[children]);
-        // 执行传入的回调 func 进行过滤
         return func(node) || (node[children] && node[children].length);
       });
   }
-
   return listFilter(tree);
 }
 
@@ -167,7 +157,6 @@ export function forEach<T = any>(
 
 /**
  * @description: Extract tree specified structure
- * @description: 提取树指定结构
  */
 export function treeMap<T = any>(treeData: T[], opt: { children?: string; conversion: Fn }): T[] {
   return treeData.map((item) => treeMapEach(item, opt));
@@ -175,7 +164,6 @@ export function treeMap<T = any>(treeData: T[], opt: { children?: string; conver
 
 /**
  * @description: Extract tree specified structure
- * @description: 提取树指定结构
  */
 export function treeMapEach(
   data: any,
@@ -198,19 +186,4 @@ export function treeMapEach(
       ...conversionData,
     };
   }
-}
-
-/**
- * 递归遍历树结构
- * @param treeDatas 树
- * @param callBack 回调
- * @param parentNode 父节点
- */
-export function eachTree(treeDatas: any[], callBack: Fn, parentNode = {}) {
-  treeDatas.forEach((element) => {
-    const newNode = callBack(element, parentNode) || element;
-    if (element.children) {
-      eachTree(element.children, callBack, newNode);
-    }
-  });
 }

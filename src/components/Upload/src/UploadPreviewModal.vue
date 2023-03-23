@@ -2,7 +2,7 @@
   <BasicModal
     width="800px"
     :title="t('component.upload.preview')"
-    class="upload-preview-modal"
+    wrapClassName="upload-preview-modal"
     v-bind="$attrs"
     @register="register"
     :showOkBtn="false"

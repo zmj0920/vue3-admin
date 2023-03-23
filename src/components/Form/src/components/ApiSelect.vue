@@ -1,6 +1,6 @@
 <template>
   <Select
-    @dropdown-visible-change="handleFetch"
+    @dropdownVisibleChange="handleFetch"
     v-bind="$attrs"
     @change="handleChange"
     :options="getOptions"
@@ -48,15 +48,17 @@
         default: null,
       },
       // api params
-      params: propTypes.any.def({}),
+      params: {
+        type: Object as PropType<Recordable>,
+        default: () => ({}),
+      },
       // support xxx.xxx.xx
       resultField: propTypes.string.def(''),
       labelField: propTypes.string.def('label'),
       valueField: propTypes.string.def('value'),
       immediate: propTypes.bool.def(true),
-      alwaysLoad: propTypes.bool.def(false),
     },
-    emits: ['options-change', 'change', 'update:value'],
+    emits: ['options-change', 'change'],
     setup(props, { emit }) {
       const options = ref<OptionsItem[]>([]);
       const loading = ref(false);
@@ -73,10 +75,10 @@
 
         return unref(options).reduce((prev, next: Recordable) => {
           if (next) {
-            const value = get(next, valueField);
+            const value = next[valueField];
             prev.push({
               ...omit(next, [labelField, valueField]),
-              label: get(next, labelField),
+              label: next[labelField],
               value: numberToString ? `${value}` : value,
             });
           }
@@ -85,15 +87,8 @@
       });
 
       watchEffect(() => {
-        props.immediate && !props.alwaysLoad && fetch();
+        props.immediate && fetch();
       });
-
-      watch(
-        () => state.value,
-        (v) => {
-          emit('update:value', v);
-        },
-      );
 
       watch(
         () => props.params,
@@ -126,14 +121,10 @@
         }
       }
 
-      async function handleFetch(visible) {
-        if (visible) {
-          if (props.alwaysLoad) {
-            await fetch();
-          } else if (!props.immediate && unref(isFirstLoad)) {
-            await fetch();
-            isFirstLoad.value = false;
-          }
+      async function handleFetch() {
+        if (!props.immediate && unref(isFirstLoad)) {
+          await fetch();
+          isFirstLoad.value = false;
         }
       }
 
