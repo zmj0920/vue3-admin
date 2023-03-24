@@ -21,33 +21,33 @@ import { registerGlobComp } from '/@/components/registerGlobComp';
 if (import.meta.env.DEV) {
   import('ant-design-vue/dist/antd.less');
 }
-
+// 项目的初始化配置
 async function bootstrap() {
+  // 创建应用实例
   const app = createApp(App);
 
-  // Configure store
+  // 配置存储使用Pinia
   setupStore(app);
 
-  // Initialize internal system configuration
+  // 初始化内部系统配置
   initAppConfigStore();
 
-  // Register global components
+  // 注册全局组件
   registerGlobComp(app);
 
-  // Multilingual configuration
-  // Asynchronous case: language files may be obtained from the server side
+  // 多语言配置
   await setupI18n(app);
 
-  // Configure routing
+  // 配置路由
   setupRouter(app);
 
-  // router-guard
+  // 路由守卫 权限判断 、初始化缓存数据
   setupRouterGuard(router);
 
-  // Register global directive
+  // 注册全局指令
   setupGlobDirectives(app);
 
-  // Configure global error handling
+  // 配置全局错误处理
   setupErrorHandle(app);
 
   // https://next.router.vuejs.org/api/#isready

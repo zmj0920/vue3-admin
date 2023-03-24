@@ -12,22 +12,14 @@ export interface LockInfo {
 
 // Error-log information
 export interface ErrorLogInfo {
-  // Type of error
-  type: ErrorTypeEnum;
-  // Error file
-  file: string;
-  // Error name
-  name?: string;
-  // Error message
-  message: string;
-  // Error stack
-  stack?: string;
-  // Error detail
-  detail: string;
-  // Error url
-  url: string;
-  // Error time
-  time?: string;
+  type: ErrorTypeEnum; // 错误类型
+  file: string; // 产生错误文件
+  name?: string; // 错误名称
+  message: string; // 错误信息
+  stack?: string; // 调用堆栈信息
+  detail: string; // 错误详情
+  url: string; // 页面url
+  time?: string; // 发生时间
 }
 
 export interface UserInfo {
@@ -41,8 +33,8 @@ export interface UserInfo {
 }
 
 export interface BeforeMiniState {
-  menuCollapsed?: boolean;
-  menuSplit?: boolean;
-  menuMode?: MenuModeEnum;
-  menuType?: MenuTypeEnum;
+  menuCollapsed?: boolean; // 菜单折叠
+  menuSplit?: boolean; // 分割菜单
+  menuMode?: MenuModeEnum; // 菜单类型
+  menuType?: MenuTypeEnum; // 菜单模式
 }

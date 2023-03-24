@@ -13,15 +13,18 @@ const getRouteNames = (array: any[]) =>
   });
 getRouteNames(basicRoutes);
 
-// app router
+// app router 创建路由实例
 export const router = createRouter({
+  // 基于 hash 的历史记录
   history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH),
+  // 添加到路由的初始路由列表
   routes: basicRoutes as unknown as RouteRecordRaw[],
   strict: true,
+  // 在页面之间导航时控制滚动的函数
   scrollBehavior: () => ({ left: 0, top: 0 }),
 });
 
-// reset router
+// reset router 重置路由
 export function resetRouter() {
   router.getRoutes().forEach((route) => {
     const { name } = route;
@@ -31,7 +34,7 @@ export function resetRouter() {
   });
 }
 
-// config router
+// 注册路由
 export function setupRouter(app: App<Element>) {
   app.use(router);
 }

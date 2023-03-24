@@ -162,7 +162,7 @@ function registerResourceErrorHandler() {
 }
 
 /**
- * Configure global error handling
+ * Configure global error handling  配置全局错误处理
  * @param app
  */
 export function setupErrorHandle(app: App) {
@@ -170,15 +170,15 @@ export function setupErrorHandle(app: App) {
   if (!useErrorHandle) {
     return;
   }
-  // Vue exception monitoring;
+  // Vue exception monitoring; Vue异常监控
   app.config.errorHandler = vueErrorHandler;
 
-  // script error
+  // script error 脚本错误监控
   window.onerror = scriptErrorHandler;
 
-  //  promise exception
+  //  promise exception  promise 异常监控
   registerPromiseErrorHandler();
 
-  // Static resource exception
+  // Static resource exception 静态资源异常监控
   registerResourceErrorHandler();
 }

@@ -34,9 +34,9 @@ export const useUserStore = defineStore({
     token: undefined,
     // roleList
     roleList: [],
-    // Whether the login expired
+    // 登录是否超期失效
     sessionTimeout: false,
-    // Last fetch time
+    // 用户信息最后更新时间
     lastUpdateTime: 0,
   }),
   getters: {
@@ -95,11 +95,13 @@ export const useUserStore = defineStore({
 
         // save token
         this.setToken(token);
+        // 进行登录后预处理操作。
         return this.afterLoginAction(goHome);
       } catch (error) {
         return Promise.reject(error);
       }
     },
+    // 用于用户登录后，进行角色、权限、菜单、路由等配置操作。
     async afterLoginAction(goHome?: boolean): Promise<GetUserInfoModel | null> {
       if (!this.getToken) return null;
       // get user info

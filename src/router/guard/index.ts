@@ -15,15 +15,15 @@ import { createParamMenuGuard } from './paramMenuGuard';
 
 // Don't change the order of creation
 export function setupRouterGuard(router: Router) {
-  createPageGuard(router);
-  createPageLoadingGuard(router);
-  createHttpGuard(router);
-  createScrollGuard(router);
-  createMessageGuard(router);
-  createProgressGuard(router);
-  createPermissionGuard(router);
-  createParamMenuGuard(router); // must after createPermissionGuard (menu has been built.)
-  createStateGuard(router);
+  createPageGuard(router); // 处理页面状态
+  createPageLoadingGuard(router); // 处理页面加载状态
+  createHttpGuard(router); // 路由切换时关闭当前页面完成请求
+  createScrollGuard(router); // 路由切换回到顶部
+  createMessageGuard(router); // 路由切换时关闭消息实例
+  createProgressGuard(router); // 页面顶部进度条
+  createPermissionGuard(router); // 路由切换时权限验证
+  createParamMenuGuard(router); // 菜单守卫
+  createStateGuard(router); // 系统状态守卫- 当用户未登录时，进入登录页面并清除存储中的认证信息
 }
 
 /**

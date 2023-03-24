@@ -20,14 +20,17 @@ export const useErrorLogStore = defineStore({
     errorLogListCount: 0,
   }),
   getters: {
+    // 获取错误日志  默认空数组
     getErrorLogInfoList(): ErrorLogInfo[] {
       return this.errorLogInfoList || [];
     },
+    // 获取错误日志总数量
     getErrorLogListCount(): number {
       return this.errorLogListCount;
     },
   },
   actions: {
+    // 用于添加错误日志，接受类型为ErrorLogInfo 的参数
     addErrorLogInfo(info: ErrorLogInfo) {
       const item = {
         ...info,
@@ -36,7 +39,7 @@ export const useErrorLogStore = defineStore({
       this.errorLogInfoList = [item, ...(this.errorLogInfoList || [])];
       this.errorLogListCount += 1;
     },
-
+    // setErrorLogListCount 方法用于重置错误日志总数数值。
     setErrorLogListCount(count: number): void {
       this.errorLogListCount = count;
     },
