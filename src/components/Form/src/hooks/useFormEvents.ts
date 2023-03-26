@@ -1,23 +1,23 @@
-import type { ComputedRef, Ref } from 'vue';
-import type { FormProps, FormSchema, FormActionType } from '../types/form';
-import type { NamePath } from 'ant-design-vue/lib/form/interface';
-import { unref, toRaw } from 'vue';
-import { isArray, isFunction, isObject, isString } from '/@/utils/is';
-import { deepMerge } from '/@/utils';
-import { dateItemType, handleInputNumberValue } from '../helper';
-import { dateUtil } from '/@/utils/dateUtil';
-import { cloneDeep, uniqBy } from 'lodash-es';
-import { error } from '/@/utils/log';
+import type { ComputedRef, Ref } from 'vue'
+import type { FormProps, FormSchema, FormActionType } from '../types/form'
+import type { NamePath } from 'ant-design-vue/lib/form/interface'
+import { unref, toRaw, nextTick } from 'vue'
+import { isArray, isFunction, isObject, isString, isDef, isNullOrUnDef, isEmpty } from '@/utils/is'
+import { deepMerge } from '@/utils'
+import { dateItemType, handleInputNumberValue, defaultValueComponents } from '../helper'
+import { dateUtil } from '@/utils/dateUtil'
+import { cloneDeep, uniqBy } from 'lodash-es'
+import { error } from '@/utils/log'
 
 interface UseFormActionContext {
-  emit: EmitType;
-  getProps: ComputedRef<FormProps>;
-  getSchema: ComputedRef<FormSchema[]>;
-  formModel: Recordable;
-  defaultValueRef: Ref<Recordable>;
-  formElRef: Ref<FormActionType>;
-  schemaRef: Ref<FormSchema[]>;
-  handleFormValues: Fn;
+  emit: EmitType
+  getProps: ComputedRef<FormProps>
+  getSchema: ComputedRef<FormSchema[]>
+  formModel: Recordable
+  defaultValueRef: Ref<Recordable>
+  formElRef: Ref<FormActionType>
+  schemaRef: Ref<FormSchema[]>
+  handleFormValues: Fn
 }
 export function useFormEvents({
   emit,
@@ -27,21 +27,25 @@ export function useFormEvents({
   defaultValueRef,
   formElRef,
   schemaRef,
-  handleFormValues,
+  handleFormValues
 }: UseFormActionContext) {
   async function resetFields(): Promise<void> {
-    const { resetFunc, submitOnReset } = unref(getProps);
-    resetFunc && isFunction(resetFunc) && (await resetFunc());
+    const { resetFunc, submitOnReset } = unref(getProps)
+    resetFunc && isFunction(resetFunc) && (await resetFunc())
 
-    const formEl = unref(formElRef);
-    if (!formEl) return;
+    const formEl = unref(formElRef)
+    if (!formEl) return
 
     Object.keys(formModel).forEach((key) => {
-      formModel[key] = defaultValueRef.value[key];
-    });
-    clearValidate();
-    emit('reset', toRaw(formModel));
-    submitOnReset && handleSubmit();
+      const schema = unref(getSchema).find((item) => item.field === key)
+      const isInput = schema?.component && defaultValueComponents.includes(schema.component)
+      const defaultValue = cloneDeep(defaultValueRef.value[key])
+      formModel[key] = isInput ? defaultValue || '' : defaultValue
+    })
+    nextTick(() => clearValidate())
+
+    emit('reset', toRaw(formModel))
+    submitOnReset && handleSubmit()
   }
 
   /**
@@ -50,70 +54,92 @@ export function useFormEvents({
   async function setFieldsValue(values: Recordable): Promise<void> {
     const fields = unref(getSchema)
       .map((item) => item.field)
-      .filter(Boolean);
+      .filter(Boolean)
 
-    const validKeys: string[] = [];
+    // key 支持 a.b.c 的嵌套写法
+    const delimiter = '.'
+    const nestKeyArray = fields.filter((item) => String(item).indexOf(delimiter) >= 0)
+
+    const validKeys: string[] = []
     Object.keys(values).forEach((key) => {
-      const schema = unref(getSchema).find((item) => item.field === key);
-      let value = values[key];
+      const schema = unref(getSchema).find((item) => item.field === key)
+      let value = values[key]
 
-      const hasKey = Reflect.has(values, key);
+      const hasKey = Reflect.has(values, key)
 
-      value = handleInputNumberValue(schema?.component, value);
+      value = handleInputNumberValue(schema?.component, value)
+      const { componentProps } = schema || {}
+      let _props = componentProps as any
+      if (typeof componentProps === 'function') {
+        _props = _props({ formModel: unref(formModel) })
+      }
       // 0| '' is allow
       if (hasKey && fields.includes(key)) {
         // time type
         if (itemIsDateType(key)) {
           if (Array.isArray(value)) {
-            const arr: any[] = [];
+            const arr: any[] = []
             for (const ele of value) {
-              arr.push(ele ? dateUtil(ele) : null);
+              arr.push(ele ? dateUtil(ele) : null)
             }
-            formModel[key] = arr;
+            unref(formModel)[key] = arr
           } else {
-            const { componentProps } = schema || {};
-            let _props = componentProps as any;
-            if (typeof componentProps === 'function') {
-              _props = _props({ formModel });
-            }
-            formModel[key] = value ? (_props?.valueFormat ? value : dateUtil(value)) : null;
+            unref(formModel)[key] = value ? (_props?.valueFormat ? value : dateUtil(value)) : null
           }
         } else {
-          formModel[key] = value;
+          unref(formModel)[key] = value
         }
-        validKeys.push(key);
+        if (_props?.onChange) {
+          _props?.onChange(value)
+        }
+        validKeys.push(key)
+      } else {
+        nestKeyArray.forEach((nestKey: string) => {
+          try {
+            const value = nestKey.split('.').reduce((out, item) => out[item], values)
+            if (isDef(value)) {
+              unref(formModel)[nestKey] = unref(value)
+              validKeys.push(nestKey)
+            }
+          } catch (e) {
+            // key not exist
+            if (isDef(defaultValueRef.value[nestKey])) {
+              unref(formModel)[nestKey] = cloneDeep(unref(defaultValueRef.value[nestKey]))
+            }
+          }
+        })
       }
-    });
-    validateFields(validKeys).catch((_) => {});
+    })
+    validateFields(validKeys).catch((_) => {})
   }
   /**
    * @description: Delete based on field name
    */
-  async function removeSchemaByFiled(fields: string | string[]): Promise<void> {
-    const schemaList: FormSchema[] = cloneDeep(unref(getSchema));
+  async function removeSchemaByField(fields: string | string[]): Promise<void> {
+    const schemaList: FormSchema[] = cloneDeep(unref(getSchema))
     if (!fields) {
-      return;
+      return
     }
 
-    let fieldList: string[] = isString(fields) ? [fields] : fields;
+    let fieldList: string[] = isString(fields) ? [fields] : fields
     if (isString(fields)) {
-      fieldList = [fields];
+      fieldList = [fields]
     }
     for (const field of fieldList) {
-      _removeSchemaByFiled(field, schemaList);
+      _removeSchemaByFeild(field, schemaList)
     }
-    schemaRef.value = schemaList;
+    schemaRef.value = schemaList
   }
 
   /**
    * @description: Delete based on field name
    */
-  function _removeSchemaByFiled(field: string, schemaList: FormSchema[]): void {
+  function _removeSchemaByFeild(field: string, schemaList: FormSchema[]): void {
     if (isString(field)) {
-      const index = schemaList.findIndex((schema) => schema.field === field);
+      const index = schemaList.findIndex((schema) => schema.field === field)
       if (index !== -1) {
-        delete formModel[field];
-        schemaList.splice(index, 1);
+        delete formModel[field]
+        schemaList.splice(index, 1)
       }
     }
   }
@@ -121,84 +147,107 @@ export function useFormEvents({
   /**
    * @description: Insert after a certain field, if not insert the last
    */
-  async function appendSchemaByField(schema: FormSchema, prefixField?: string, first = false) {
-    const schemaList: FormSchema[] = cloneDeep(unref(getSchema));
+  async function appendSchemaByField(schema: FormSchema | FormSchema[], prefixField?: string, first = false) {
+    const schemaList: FormSchema[] = cloneDeep(unref(getSchema))
 
-    const index = schemaList.findIndex((schema) => schema.field === prefixField);
-    const hasInList = schemaList.some((item) => item.field === prefixField || schema.field);
-
-    if (!hasInList) return;
-
+    const index = schemaList.findIndex((schema) => schema.field === prefixField)
+    const _schemaList = isObject(schema) ? [schema as FormSchema] : (schema as FormSchema[])
     if (!prefixField || index === -1 || first) {
-      first ? schemaList.unshift(schema) : schemaList.push(schema);
-      schemaRef.value = schemaList;
-      return;
+      first ? schemaList.unshift(..._schemaList) : schemaList.push(..._schemaList)
+      schemaRef.value = schemaList
+      _setDefaultValue(schema)
+      return
     }
     if (index !== -1) {
-      schemaList.splice(index + 1, 0, schema);
+      schemaList.splice(index + 1, 0, ..._schemaList)
     }
-    schemaRef.value = schemaList;
+    _setDefaultValue(schema)
+
+    schemaRef.value = schemaList
   }
 
   async function resetSchema(data: Partial<FormSchema> | Partial<FormSchema>[]) {
-    let updateData: Partial<FormSchema>[] = [];
+    let updateData: Partial<FormSchema>[] = []
     if (isObject(data)) {
-      updateData.push(data as FormSchema);
+      updateData.push(data as FormSchema)
     }
     if (isArray(data)) {
-      updateData = [...data];
+      updateData = [...data]
     }
 
-    const hasField = updateData.every(
-      (item) => item.component === 'Divider' || (Reflect.has(item, 'field') && item.field),
-    );
+    const hasField = updateData.every((item) => item.component === 'Divider' || (Reflect.has(item, 'field') && item.field))
 
     if (!hasField) {
-      error(
-        'All children of the form Schema array that need to be updated must contain the `field` field',
-      );
-      return;
+      error('All children of the form Schema array that need to be updated must contain the `field` field')
+      return
     }
-    schemaRef.value = updateData as FormSchema[];
+    schemaRef.value = updateData as FormSchema[]
   }
 
   async function updateSchema(data: Partial<FormSchema> | Partial<FormSchema>[]) {
-    let updateData: Partial<FormSchema>[] = [];
+    let updateData: Partial<FormSchema>[] = []
     if (isObject(data)) {
-      updateData.push(data as FormSchema);
+      updateData.push(data as FormSchema)
     }
     if (isArray(data)) {
-      updateData = [...data];
+      updateData = [...data]
     }
 
-    const hasField = updateData.every(
-      (item) => item.component === 'Divider' || (Reflect.has(item, 'field') && item.field),
-    );
+    const hasField = updateData.every((item) => item.component === 'Divider' || (Reflect.has(item, 'field') && item.field))
 
     if (!hasField) {
-      error(
-        'All children of the form Schema array that need to be updated must contain the `field` field',
-      );
-      return;
+      error('All children of the form Schema array that need to be updated must contain the `field` field')
+      return
     }
-    const schema: FormSchema[] = [];
-    updateData.forEach((item) => {
-      unref(getSchema).forEach((val) => {
+    const schema: FormSchema[] = []
+    unref(getSchema).forEach((val) => {
+      let _val
+      updateData.forEach((item) => {
         if (val.field === item.field) {
-          const newSchema = deepMerge(val, item);
-          schema.push(newSchema as FormSchema);
-        } else {
-          schema.push(val);
+          _val = item
         }
-      });
-    });
-    schemaRef.value = uniqBy(schema, 'field');
+      })
+      if (_val !== undefined && val.field === _val.field) {
+        const newSchema = deepMerge(val, _val)
+        schema.push(newSchema as FormSchema)
+      } else {
+        schema.push(val)
+      }
+    })
+    _setDefaultValue(schema)
+
+    schemaRef.value = uniqBy(schema, 'field')
+  }
+
+  function _setDefaultValue(data: FormSchema | FormSchema[]) {
+    let schemas: FormSchema[] = []
+    if (isObject(data)) {
+      schemas.push(data as FormSchema)
+    }
+    if (isArray(data)) {
+      schemas = [...data]
+    }
+
+    const obj: Recordable = {}
+    const currentFieldsValue = getFieldsValue()
+    schemas.forEach((item) => {
+      if (
+        item.component != 'Divider' &&
+        Reflect.has(item, 'field') &&
+        item.field &&
+        !isNullOrUnDef(item.defaultValue) &&
+        (!(item.field in currentFieldsValue) || isNullOrUnDef(currentFieldsValue[item.field]) || isEmpty(currentFieldsValue[item.field]))
+      ) {
+        obj[item.field] = item.defaultValue
+      }
+    })
+    setFieldsValue(obj)
   }
 
   function getFieldsValue(): Recordable {
-    const formEl = unref(formElRef);
-    if (!formEl) return {};
-    return handleFormValues(toRaw(unref(formModel)));
+    const formEl = unref(formElRef)
+    if (!formEl) return {}
+    return handleFormValues(toRaw(unref(formModel)))
   }
 
   /**
@@ -206,44 +255,47 @@ export function useFormEvents({
    */
   function itemIsDateType(key: string) {
     return unref(getSchema).some((item) => {
-      return item.field === key ? dateItemType.includes(item.component) : false;
-    });
+      return item.field === key ? dateItemType.includes(item.component) : false
+    })
   }
 
   async function validateFields(nameList?: NamePath[] | undefined) {
-    return unref(formElRef)?.validateFields(nameList);
+    return unref(formElRef)?.validateFields(nameList)
   }
 
   async function validate(nameList?: NamePath[] | undefined) {
-    return await unref(formElRef)?.validate(nameList);
+    return await unref(formElRef)?.validate(nameList)
   }
 
   async function clearValidate(name?: string | string[]) {
-    await unref(formElRef)?.clearValidate(name);
+    await unref(formElRef)?.clearValidate(name)
   }
 
   async function scrollToField(name: NamePath, options?: ScrollOptions | undefined) {
-    await unref(formElRef)?.scrollToField(name, options);
+    await unref(formElRef)?.scrollToField(name, options)
   }
 
   /**
    * @description: Form submission
    */
   async function handleSubmit(e?: Event): Promise<void> {
-    e && e.preventDefault();
-    const { submitFunc } = unref(getProps);
+    e && e.preventDefault()
+    const { submitFunc } = unref(getProps)
     if (submitFunc && isFunction(submitFunc)) {
-      await submitFunc();
-      return;
+      await submitFunc()
+      return
     }
-    const formEl = unref(formElRef);
-    if (!formEl) return;
+    const formEl = unref(formElRef)
+    if (!formEl) return
     try {
-      const values = await validate();
-      const res = handleFormValues(values);
-      emit('submit', res);
+      const values = await validate()
+      const res = handleFormValues(values)
+      emit('submit', res)
     } catch (error: any) {
-      throw new Error(error);
+      if (error?.outOfDate === false && error?.errorFields) {
+        return
+      }
+      throw new Error(error)
     }
   }
 
@@ -256,9 +308,9 @@ export function useFormEvents({
     updateSchema,
     resetSchema,
     appendSchemaByField,
-    removeSchemaByFiled,
+    removeSchemaByField,
     resetFields,
     setFieldsValue,
-    scrollToField,
-  };
+    scrollToField
+  }
 }

@@ -6,7 +6,7 @@ export default {
     charts: 'Chart',
     map: 'Map',
     line: 'Line',
-    pie: 'Pie',
+    pie: 'Pie'
   },
   comp: {
     comp: 'Component',
@@ -43,9 +43,8 @@ export default {
 
     loading: 'Loading',
 
-    time: 'Relative Time',
     cropperImage: 'Cropper Image',
-    cardList: 'Card List',
+    cardList: 'Card List'
   },
   editor: {
     editor: 'Editor',
@@ -54,14 +53,14 @@ export default {
 
     tinymce: 'Rich text',
     tinymceBasic: 'Basic',
-    tinymceForm: 'embedded form',
+    tinymceForm: 'embedded form'
   },
   excel: {
     excel: 'Excel',
     customExport: 'Select export format',
     jsonExport: 'JSON data export',
     arrayExport: 'Array data export',
-    importExcel: 'Import',
+    importExcel: 'Import'
   },
   feat: {
     feat: 'Page Function',
@@ -72,7 +71,6 @@ export default {
     print: 'Print',
     contextMenu: 'Context Menu',
     download: 'Download',
-    clickOutSide: 'ClickOutSide',
     imgPreview: 'Picture Preview',
     copy: 'Clipboard',
     msg: 'Message prompt',
@@ -92,13 +90,14 @@ export default {
     breadcrumb: 'Breadcrumbs',
     breadcrumbFlat: 'Flat Mode',
     breadcrumbFlatDetail: 'Flat mode details',
+    requestDemo: 'Retry request demo',
 
     breadcrumbChildren: 'Level mode',
-    breadcrumbChildrenDetail: 'Level mode detail',
+    breadcrumbChildrenDetail: 'Level mode detail'
   },
   flow: {
     name: 'Graphics editor',
-    flowChart: 'FlowChart',
+    flowChart: 'FlowChart'
   },
   form: {
     form: 'Form',
@@ -110,12 +109,13 @@ export default {
     dynamicForm: 'Dynamic',
     customerForm: 'Custom',
     appendForm: 'Append',
+    tabsForm: 'TabsForm'
   },
   iframe: {
     frame: 'External',
     antv: 'antVue doc (embedded)',
     doc: 'Project doc (embedded)',
-    docExternal: 'Project doc (external)',
+    docExternal: 'Project doc (external)'
   },
   level: { level: 'MultiMenu' },
   page: {
@@ -146,7 +146,7 @@ export default {
     listCard: 'Card list',
     basic: 'Basic list',
     listBasic: 'Basic list',
-    listSearch: 'Search list',
+    listSearch: 'Search list'
   },
   permission: {
     permission: 'Permission',
@@ -159,10 +159,10 @@ export default {
 
     back: 'background',
     backPage: 'Page',
-    backBtn: 'Button',
+    backBtn: 'Button'
   },
   setup: {
-    page: 'Intro page',
+    page: 'Intro page'
   },
   system: {
     moduleName: 'System management',
@@ -174,7 +174,7 @@ export default {
     dept: 'Department management',
 
     menu: 'Menu management',
-    role: 'Role management',
+    role: 'Role management'
   },
   table: {
     table: 'Table',
@@ -195,5 +195,6 @@ export default {
     editCellTable: 'Editable cell',
     editRowTable: 'Editable row',
     authColumn: 'Auth column',
-  },
-};
+    resizeParentHeightTable: 'resizeParentHeightTable'
+  }
+}

@@ -1,6 +1,6 @@
-import { resultSuccess, resultError, getRequestToken, requestParams } from '../_util';
-import { MockMethod } from 'vite-plugin-mock';
-import { createFakeUserList } from './user';
+import { resultSuccess, resultError, getRequestToken, requestParams } from '../_util'
+import { MockMethod } from 'vite-plugin-mock'
+import { createFakeUserList } from './user'
 
 // single
 const dashboardRoute = {
@@ -10,8 +10,7 @@ const dashboardRoute = {
   redirect: '/dashboard/analysis',
   meta: {
     title: 'routes.dashboard.dashboard',
-    hideChildrenInMenu: true,
-    icon: 'bx:bx-home',
+    icon: 'bx:bx-home'
   },
   children: [
     {
@@ -19,122 +18,21 @@ const dashboardRoute = {
       name: 'Analysis',
       component: '/dashboard/analysis/index',
       meta: {
-        hideMenu: true,
-        hideBreadcrumb: true,
         title: 'routes.dashboard.analysis',
-        currentActiveMenu: '/dashboard',
-        icon: 'bx:bx-home',
-      },
+        icon: 'bx:bx-home'
+      }
     },
     {
       path: 'workbench',
       name: 'Workbench',
       component: '/dashboard/workbench/index',
       meta: {
-        hideMenu: true,
-        hideBreadcrumb: true,
         title: 'routes.dashboard.workbench',
-        currentActiveMenu: '/dashboard',
-        icon: 'bx:bx-home',
-      },
-    },
-  ],
-};
-
-const backRoute = {
-  path: 'back',
-  name: 'PermissionBackDemo',
-  meta: {
-    title: 'routes.demo.permission.back',
-  },
-
-  children: [
-    {
-      path: 'page',
-      name: 'BackAuthPage',
-      component: '/demo/permission/back/index',
-      meta: {
-        title: 'routes.demo.permission.backPage',
-      },
-    },
-    {
-      path: 'btn',
-      name: 'BackAuthBtn',
-      component: '/demo/permission/back/Btn',
-      meta: {
-        title: 'routes.demo.permission.backBtn',
-      },
-    },
-  ],
-};
-
-const authRoute = {
-  path: '/permission',
-  name: 'Permission',
-  component: 'LAYOUT',
-  redirect: '/permission/front/page',
-  meta: {
-    icon: 'carbon:user-role',
-    title: 'routes.demo.permission.permission',
-  },
-  children: [backRoute],
-};
-
-const levelRoute = {
-  path: '/level',
-  name: 'Level',
-  component: 'LAYOUT',
-  redirect: '/level/menu1/menu1-1',
-  meta: {
-    icon: 'carbon:user-role',
-    title: 'routes.demo.level.level',
-  },
-
-  children: [
-    {
-      path: 'menu1',
-      name: 'Menu1Demo',
-      meta: {
-        title: 'Menu1',
-      },
-      children: [
-        {
-          path: 'menu1-1',
-          name: 'Menu11Demo',
-          meta: {
-            title: 'Menu1-1',
-          },
-          children: [
-            {
-              path: 'menu1-1-1',
-              name: 'Menu111Demo',
-              component: '/demo/level/Menu111',
-              meta: {
-                title: 'Menu111',
-              },
-            },
-          ],
-        },
-        {
-          path: 'menu1-2',
-          name: 'Menu12Demo',
-          component: '/demo/level/Menu12',
-          meta: {
-            title: 'Menu1-2',
-          },
-        },
-      ],
-    },
-    {
-      path: 'menu2',
-      name: 'Menu2Demo',
-      component: '/demo/level/Menu2',
-      meta: {
-        title: 'Menu2',
-      },
-    },
-  ],
-};
+        icon: 'bx:bx-home'
+      }
+    }
+  ]
+}
 
 const sysRoute = {
   path: '/system',
@@ -143,7 +41,7 @@ const sysRoute = {
   redirect: '/system/account',
   meta: {
     icon: 'ion:settings-outline',
-    title: 'routes.demo.system.moduleName',
+    title: 'routes.demo.system.moduleName'
   },
   children: [
     {
@@ -151,9 +49,9 @@ const sysRoute = {
       name: 'AccountManagement',
       meta: {
         title: 'routes.demo.system.account',
-        ignoreKeepAlive: true,
+        ignoreKeepAlive: true
       },
-      component: '/demo/system/account/index',
+      component: '/system/account/index'
     },
     {
       path: 'account_detail/:id',
@@ -163,77 +61,323 @@ const sysRoute = {
         title: 'routes.demo.system.account_detail',
         ignoreKeepAlive: true,
         showMenu: false,
-        currentActiveMenu: '/system/account',
+        currentActiveMenu: '/system/account'
       },
-      component: '/demo/system/account/AccountDetail',
+      component: '/demo/system/account/AccountDetail'
     },
     {
       path: 'role',
       name: 'RoleManagement',
       meta: {
         title: 'routes.demo.system.role',
-        ignoreKeepAlive: true,
+        ignoreKeepAlive: true
       },
-      component: '/demo/system/role/index',
+      component: '/demo/system/role/index'
     },
-
     {
       path: 'menu',
       name: 'MenuManagement',
       meta: {
         title: 'routes.demo.system.menu',
-        ignoreKeepAlive: true,
+        ignoreKeepAlive: true
       },
-      component: '/demo/system/menu/index',
+      component: '/demo/system/menu/index'
     },
     {
       path: 'dept',
       name: 'DeptManagement',
       meta: {
         title: 'routes.demo.system.dept',
-        ignoreKeepAlive: true,
+        ignoreKeepAlive: true
       },
-      component: '/demo/system/dept/index',
+      component: '/demo/system/dept/index'
     },
     {
       path: 'changePassword',
       name: 'ChangePassword',
       meta: {
         title: 'routes.demo.system.password',
-        ignoreKeepAlive: true,
+        ignoreKeepAlive: true
       },
-      component: '/demo/system/password/index',
-    },
-  ],
-};
+      component: '/demo/system/password/index'
+    }
+  ]
+}
 
-const linkRoute = {
-  path: '/link',
-  name: 'Link',
+const charts = {
+  path: '/charts',
+  name: 'Charts',
   component: 'LAYOUT',
+  redirect: '/charts/map',
   meta: {
+    orderNo: 500,
+    icon: 'ion:bar-chart-outline',
+    title: 'routes.demo.charts.charts'
+  },
+  children: [
+    {
+      path: 'map',
+      name: 'Map',
+      component: '/charts/Map.vue',
+      meta: {
+        title: 'routes.demo.charts.map'
+      }
+    },
+    {
+      path: 'line',
+      name: 'Line',
+      component: '/charts/Line.vue',
+      meta: {
+        title: 'routes.demo.charts.line'
+      }
+    },
+    {
+      path: 'pie',
+      name: 'Pie',
+      component: '/charts/Pie.vue',
+      meta: {
+        title: 'routes.demo.charts.pie'
+      }
+    }
+  ]
+}
+
+const comp = {
+  path: '/comp',
+  name: 'Comp',
+  component: 'LAYOUT',
+  redirect: '/comp/basic',
+  meta: {
+    orderNo: 30,
+    icon: 'ion:layers-outline',
+    title: 'routes.demo.comp.comp'
+  },
+  children: [
+    {
+      path: 'transition',
+      name: 'transitionDemo',
+      component: '/components/transition/index.vue',
+      meta: {
+        title: 'routes.demo.comp.transition'
+      }
+    },
+    {
+      path: 'cropper',
+      name: 'CropperDemo',
+      component: '/components/cropper/index.vue',
+      meta: {
+        title: 'routes.demo.comp.cropperImage'
+      }
+    },
+    {
+      path: 'scroll',
+      name: 'ScrollDemo',
+      redirect: '/comp/scroll/basic',
+      meta: {
+        title: 'routes.demo.comp.scroll'
+      },
+      children: [
+        {
+          path: 'basic',
+          name: 'BasicScrollDemo',
+          component: '/components/scroll/index.vue',
+          meta: {
+            title: 'routes.demo.comp.scrollBasic'
+          }
+        },
+        {
+          path: 'action',
+          name: 'ActionScrollDemo',
+          component: '/components/scroll/Action.vue',
+          meta: {
+            title: 'routes.demo.comp.scrollAction'
+          }
+        },
+        {
+          path: 'virtualScroll',
+          name: 'VirtualScrollDemo',
+          component: '/components/scroll/VirtualScroll.vue',
+          meta: {
+            title: 'routes.demo.comp.virtualScroll'
+          }
+        }
+      ]
+    },
+    {
+      path: 'lazy',
+      name: 'LazyDemo',
+      redirect: '/comp/lazy/basic',
+      meta: {
+        title: 'routes.demo.comp.lazy'
+      },
+      children: [
+        {
+          path: 'basic',
+          name: 'BasicLazyDemo',
+          component: '/components/lazy/index.vue',
+          meta: {
+            title: 'routes.demo.comp.lazyBasic'
+          }
+        },
+        {
+          path: 'transition',
+          name: 'BasicTransitionDemo',
+          component: '/components/lazy/Transition.vue',
+          meta: {
+            title: 'routes.demo.comp.lazyTransition'
+          }
+        }
+      ]
+    },
+    {
+      path: 'verify',
+      name: 'VerifyDemo',
+      redirect: '/comp/verify/drag',
+      meta: {
+        title: 'routes.demo.comp.verify'
+      },
+      children: [
+        {
+          path: 'drag',
+          name: 'VerifyDragDemo',
+          component: '/components/verify/index.vue',
+          meta: {
+            title: 'routes.demo.comp.verifyDrag'
+          }
+        },
+        {
+          path: 'rotate',
+          name: 'VerifyRotateDemo',
+          component: '/components/verify/Rotate.vue',
+          meta: {
+            title: 'routes.demo.comp.verifyRotate'
+          }
+        }
+      ]
+    },
+    {
+      path: 'upload',
+      name: 'UploadDemo',
+      component: '/components/upload/index.vue',
+      meta: {
+        title: 'routes.demo.comp.upload'
+      }
+    },
+    {
+      path: 'ws',
+      name: 'WebSocket',
+      component: '/components/ws/index.vue',
+      meta: {
+        title: 'routes.demo.feat.ws'
+      }
+    },
+    {
+      path: 'download',
+      name: 'DownLoadDemo',
+      component: '/components/download/index.vue',
+      meta: {
+        title: 'routes.demo.feat.download'
+      }
+    },
+    {
+      path: 'img-preview',
+      name: 'ImgPreview',
+      component: '/components/img-preview/index.vue',
+      meta: {
+        title: 'routes.demo.feat.imgPreview'
+      }
+    },
+    {
+      path: 'watermark',
+      name: 'WatermarkDemo',
+      component: '/components/watermark/index.vue',
+      meta: {
+        title: 'routes.demo.feat.watermark'
+      }
+    },
+    {
+      path: 'excel',
+      name: 'Excel',
+      redirect: '/comp/excel/customExport',
+      meta: {
+        // icon: 'mdi:microsoft-excel',
+        title: 'routes.demo.excel.excel'
+      },
+
+      children: [
+        {
+          path: 'customExport',
+          name: 'CustomExport',
+          component: '/components/excel/CustomExport.vue',
+          meta: {
+            title: 'routes.demo.excel.customExport'
+          }
+        },
+        {
+          path: 'jsonExport',
+          name: 'JsonExport',
+          component: '/components/excel/JsonExport.vue',
+          meta: {
+            title: 'routes.demo.excel.jsonExport'
+          }
+        },
+        {
+          path: 'arrayExport',
+          name: 'ArrayExport',
+          component: '/components/excel/ArrayExport.vue',
+          meta: {
+            title: 'routes.demo.excel.arrayExport'
+          }
+        },
+        {
+          path: 'importExcel',
+          name: 'ImportExcel',
+          component: '/components/excel/ImportExcel.vue',
+          meta: {
+            title: 'routes.demo.excel.importExcel'
+          }
+        }
+      ]
+    }
+  ]
+}
+
+const iframe = {
+  path: '/frame',
+  name: 'Frame',
+  component: 'LAYOUT',
+  redirect: '/frame/doc',
+  meta: {
+    orderNo: 1000,
     icon: 'ion:tv-outline',
-    title: 'routes.demo.iframe.frame',
+    title: 'routes.demo.iframe.frame'
   },
   children: [
     {
       path: 'doc',
       name: 'Doc',
       meta: {
-        title: 'routes.demo.iframe.doc',
-        frameSrc: 'https://vvbin.cn/doc-next/',
-      },
+        frameSrc: 'https://doc.vvbin.cn/',
+        title: 'routes.demo.iframe.doc'
+      }
     },
     {
-      path: 'https://vvbin.cn/doc-next/',
-      name: 'DocExternal',
-      component: 'LAYOUT',
+      path: 'antv',
+      name: 'Antv',
       meta: {
-        title: 'routes.demo.iframe.docExternal',
-      },
+        frameSrc: 'https://www.antdv.com/docs/vue/introduce-cn/',
+        title: 'routes.demo.iframe.antv'
+      }
     },
-  ],
-};
+    {
+      path: 'https://doc.vvbin.cn/',
+      name: 'DocExternal',
+      meta: {
+        title: 'routes.demo.iframe.docExternal'
+      }
+    }
+  ]
+}
 
 export default [
   {
@@ -241,30 +385,30 @@ export default [
     timeout: 1000,
     method: 'get',
     response: (request: requestParams) => {
-      const token = getRequestToken(request);
+      const token = getRequestToken(request)
       if (!token) {
-        return resultError('Invalid token!');
+        return resultError('Invalid token!')
       }
-      const checkUser = createFakeUserList().find((item) => item.token === token);
+      const checkUser = createFakeUserList().find((item) => item.token === token)
       if (!checkUser) {
-        return resultError('Invalid user token!');
+        return resultError('Invalid user token!')
       }
-      const id = checkUser.userId;
-      let menu: Object[];
+      const id = checkUser.userId
+      let menu: Object[]
       switch (id) {
         case '1':
-          dashboardRoute.redirect = dashboardRoute.path + '/' + dashboardRoute.children[0].path;
-          menu = [dashboardRoute, authRoute, levelRoute, sysRoute, linkRoute];
-          break;
+          dashboardRoute.redirect = dashboardRoute.path + '/' + dashboardRoute.children[0].path
+          menu = [dashboardRoute, sysRoute, charts, comp, iframe]
+          break
         case '2':
-          dashboardRoute.redirect = dashboardRoute.path + '/' + dashboardRoute.children[1].path;
-          menu = [dashboardRoute, authRoute, levelRoute, linkRoute];
-          break;
+          dashboardRoute.redirect = dashboardRoute.path + '/' + dashboardRoute.children[1].path
+          menu = [dashboardRoute, sysRoute, charts, comp, iframe]
+          break
         default:
-          menu = [];
+          menu = []
       }
 
-      return resultSuccess(menu);
-    },
-  },
-] as MockMethod[];
+      return resultSuccess(menu)
+    }
+  }
+] as MockMethod[]

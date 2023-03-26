@@ -1,119 +1,110 @@
-import type {
-  ProjectConfig,
-  HeaderSetting,
-  MenuSetting,
-  TransitionSetting,
-  MultiTabsSetting,
-} from '/#/config';
-import type { BeforeMiniState } from '/#/store';
+import type { ProjectConfig, HeaderSetting, MenuSetting, TransitionSetting, MultiTabsSetting, AppSizeType } from '@/types/config'
+import type { BeforeMiniState } from '@/types/store'
 
-import { defineStore } from 'pinia';
-import { store } from '/@/store';
+import { defineStore } from 'pinia'
+import { store } from '@/store'
 
-import { ThemeEnum } from '/@/enums/appEnum';
-import { APP_DARK_MODE_KEY_, PROJ_CFG_KEY } from '/@/enums/cacheEnum';
-import { Persistent } from '/@/utils/cache/persistent';
-import { darkMode } from '/@/settings/designSetting';
-import { resetRouter } from '/@/router';
-import { deepMerge } from '/@/utils';
+import { ThemeEnum } from '@/enums/appEnum'
+import { APP_DARK_MODE_KEY_, PROJ_CFG_KEY } from '@/enums/cacheEnum'
+import { Persistent } from '@/utils/cache/persistent'
+import { darkMode } from '@/settings/designSetting'
+import { resetRouter } from '@/router'
+import { deepMerge } from '@/utils'
 
 interface AppState {
-  darkMode?: ThemeEnum;
+  darkMode?: ThemeEnum
   // Page loading status
-  pageLoading: boolean;
+  pageLoading: boolean
   // project config
-  projectConfig: ProjectConfig | null;
+  projectConfig: ProjectConfig | null
   // When the window shrinks, remember some states, and restore these states when the window is restored
-  beforeMiniInfo: BeforeMiniState;
+  beforeMiniInfo: BeforeMiniState
+  componentSize: 'small' | 'middle' | 'large' | undefined
 }
-let timeId: TimeoutHandle;
-
-// 项目配置存储实例
-export const useAppStore = defineStore({
-  // 也称为 name，是必要的，Pinia 使用它来将 store 连接到 devtools。
-  id: 'app',
+let timeId: TimeoutHandle
+export const useAppStore = defineStore('app', {
   state: (): AppState => ({
-    darkMode: undefined, // 主题模式  dark|light
-    pageLoading: false, //  页面加载状态
-    // 项目配置 ProjectConfig
+    darkMode: undefined,
+    pageLoading: false,
     projectConfig: Persistent.getLocal(PROJ_CFG_KEY),
     beforeMiniInfo: {},
+    componentSize: 'middle'
   }),
   getters: {
-    // 页面加载状态
-    getPageLoading(): boolean {
-      return this.pageLoading;
+    getPageLoading(state): boolean {
+      return state.pageLoading
     },
-    // 主题模式
-    getDarkMode(): 'light' | 'dark' | string {
-      return this.darkMode || localStorage.getItem(APP_DARK_MODE_KEY_) || darkMode;
+    getDarkMode(state): 'light' | 'dark' | string {
+      return state.darkMode || localStorage.getItem(APP_DARK_MODE_KEY_) || darkMode
     },
-    // 菜单状态快照
-    getBeforeMiniInfo(): BeforeMiniState {
-      return this.beforeMiniInfo;
+
+    getBeforeMiniInfo(state): BeforeMiniState {
+      return state.beforeMiniInfo
     },
-    // 项目配置
-    getProjectConfig(): ProjectConfig {
-      return this.projectConfig || ({} as ProjectConfig);
+
+    getProjectConfig(state): ProjectConfig {
+      return state.projectConfig || ({} as ProjectConfig)
     },
-    // 头部配置
+
     getHeaderSetting(): HeaderSetting {
-      return this.getProjectConfig.headerSetting;
+      return this.getProjectConfig.headerSetting
     },
-    // 菜单配置
     getMenuSetting(): MenuSetting {
-      return this.getProjectConfig.menuSetting;
+      return this.getProjectConfig.menuSetting
     },
-    // 动画配置
     getTransitionSetting(): TransitionSetting {
-      return this.getProjectConfig.transitionSetting;
+      return this.getProjectConfig.transitionSetting
     },
-    // 多标签配置
     getMultiTabsSetting(): MultiTabsSetting {
-      return this.getProjectConfig.multiTabsSetting;
+      return this.getProjectConfig.multiTabsSetting
     },
+    getComponentSize(state): AppSizeType | undefined {
+      return state.componentSize
+    }
   },
   actions: {
-    // 设置页面加载状态
     setPageLoading(loading: boolean): void {
-      this.pageLoading = loading;
+      this.pageLoading = loading
     },
-    // 设置主题模式 存于`localStorage`中
+
     setDarkMode(mode: ThemeEnum): void {
-      this.darkMode = mode;
-      localStorage.setItem(APP_DARK_MODE_KEY_, mode);
+      this.darkMode = mode
+      localStorage.setItem(APP_DARK_MODE_KEY_, mode)
     },
-    // 设置页面加载状态
+
     setBeforeMiniInfo(state: BeforeMiniState): void {
-      this.beforeMiniInfo = state;
+      this.beforeMiniInfo = state
     },
-    // 设置项目配置 项目自带的缓存类进行缓存操作
+
+    setComponentSize(size: AppSizeType): void {
+      this.componentSize = size
+    },
+
     setProjectConfig(config: DeepPartial<ProjectConfig>): void {
-      this.projectConfig = deepMerge(this.projectConfig || {}, config);
-      Persistent.setLocal(PROJ_CFG_KEY, this.projectConfig);
+      this.projectConfig = deepMerge(this.projectConfig || {}, config)
+      Persistent.setLocal(PROJ_CFG_KEY, this.projectConfig)
     },
-    // 重置路由
+
     async resetAllState() {
-      resetRouter();
-      Persistent.clearAll();
+      resetRouter()
+      Persistent.clearAll()
     },
-    // 使用定时器设置页面加载状态
     async setPageLoadingAction(loading: boolean): Promise<void> {
       if (loading) {
-        clearTimeout(timeId);
-        // Prevent flicker  防止闪烁
+        clearTimeout(timeId)
+        // Prevent flicker
         timeId = setTimeout(() => {
-          this.setPageLoading(loading);
-        }, 50);
+          this.setPageLoading(loading)
+        }, 50)
       } else {
-        this.setPageLoading(loading);
-        clearTimeout(timeId);
+        this.setPageLoading(loading)
+        clearTimeout(timeId)
       }
-    },
-  },
-});
+    }
+  }
+})
 
 // Need to be used outside the setup
 export function useAppStoreWithOut() {
-  return useAppStore(store);
+  return useAppStore(store)
 }

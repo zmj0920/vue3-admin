@@ -18,7 +18,7 @@
         </TabPane>
       </template>
 
-      <template #tabBarExtraContent v-if="getShowRedo || getShowQuick">
+      <template #rightExtra v-if="getShowRedo || getShowQuick">
         <TabRedo v-if="getShowRedo" />
         <TabContent isExtra :tabItem="$route" v-if="getShowQuick" />
         <FoldButton v-if="getShowFold" />
@@ -26,121 +26,95 @@
     </Tabs>
   </div>
 </template>
-<script lang="ts">
-  import type { RouteLocationNormalized, RouteMeta } from 'vue-router';
+<script lang="ts" setup name="MultipleTabs">
+import type { RouteLocationNormalized, RouteMeta } from 'vue-router'
 
-  import { defineComponent, computed, unref, ref } from 'vue';
+import { computed, unref, ref } from 'vue'
 
-  import { Tabs } from 'ant-design-vue';
-  import TabContent from './components/TabContent.vue';
-  import FoldButton from './components/FoldButton.vue';
-  import TabRedo from './components/TabRedo.vue';
+import { Tabs } from 'ant-design-vue'
+import TabContent from './components/TabContent.vue'
+import FoldButton from './components/FoldButton.vue'
+import TabRedo from './components/TabRedo.vue'
 
-  import { useGo } from '/@/hooks/web/usePage';
+import { useGo } from '@/hooks/web/usePage'
 
-  import { useMultipleTabStore } from '/@/store/modules/multipleTab';
-  import { useUserStore } from '/@/store/modules/user';
+import { useMultipleTabStore } from '@/store/modules/multipleTab'
+import { useUserStore } from '@/store/modules/user'
 
-  import { initAffixTabs, useTabsDrag } from './useMultipleTabs';
-  import { useDesign } from '/@/hooks/web/useDesign';
-  import { useMultipleTabSetting } from '/@/hooks/setting/useMultipleTabSetting';
+import { initAffixTabs, useTabsDrag } from './useMultipleTabs'
+import { useDesign } from '@/hooks/web/useDesign'
+import { useMultipleTabSetting } from '@/hooks/setting/useMultipleTabSetting'
 
-  import { REDIRECT_NAME } from '/@/router/constant';
-  import { listenerRouteChange } from '/@/logics/mitt/routeChange';
+import { REDIRECT_NAME } from '@/router/constant'
+import { listenerRouteChange } from '@/logics/mitt/routeChange'
 
-  import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
+const TabPane = Tabs.TabPane
+const affixTextList = initAffixTabs()
+const activeKeyRef = ref('')
 
-  export default defineComponent({
-    name: 'MultipleTabs',
-    components: {
-      TabRedo,
-      FoldButton,
-      Tabs,
-      TabPane: Tabs.TabPane,
-      TabContent,
-    },
-    setup() {
-      const affixTextList = initAffixTabs();
-      const activeKeyRef = ref('');
+useTabsDrag(affixTextList)
+const tabStore = useMultipleTabStore()
+const userStore = useUserStore()
+const router = useRouter()
 
-      useTabsDrag(affixTextList);
-      const tabStore = useMultipleTabStore();
-      const userStore = useUserStore();
-      const router = useRouter();
+const { prefixCls } = useDesign('multiple-tabs')
+const go = useGo()
+const { getShowQuick, getShowRedo, getShowFold } = useMultipleTabSetting()
 
-      const { prefixCls } = useDesign('multiple-tabs');
-      const go = useGo();
-      const { getShowQuick, getShowRedo, getShowFold } = useMultipleTabSetting();
+const getTabsState = computed(() => {
+  return tabStore.getTabList.filter((item) => !item.meta?.hideTab)
+})
 
-      const getTabsState = computed(() => {
-        return tabStore.getTabList.filter((item) => !item.meta?.hideTab);
-      });
+const unClose = computed(() => unref(getTabsState).length === 1)
 
-      const unClose = computed(() => unref(getTabsState).length === 1);
+const getWrapClass = computed(() => {
+  return [
+    prefixCls,
+    {
+      [`${prefixCls}--hide-close`]: unref(unClose)
+    }
+  ]
+})
 
-      const getWrapClass = computed(() => {
-        return [
-          prefixCls,
-          {
-            [`${prefixCls}--hide-close`]: unref(unClose),
-          },
-        ];
-      });
+listenerRouteChange((route) => {
+  const { name } = route
+  if (name === REDIRECT_NAME || !route || !userStore.getToken) {
+    return
+  }
 
-      listenerRouteChange((route) => {
-        const { name } = route;
-        if (name === REDIRECT_NAME || !route || !userStore.getToken) {
-          return;
-        }
+  const { path, fullPath, meta = {} } = route
+  const { currentActiveMenu, hideTab } = meta as RouteMeta
+  const isHide = !hideTab ? null : currentActiveMenu
+  const p = isHide || fullPath || path
+  if (activeKeyRef.value !== p) {
+    activeKeyRef.value = p as string
+  }
 
-        const { path, fullPath, meta = {} } = route;
-        const { currentActiveMenu, hideTab } = meta as RouteMeta;
-        const isHide = !hideTab ? null : currentActiveMenu;
-        const p = isHide || fullPath || path;
-        if (activeKeyRef.value !== p) {
-          activeKeyRef.value = p as string;
-        }
+  if (isHide) {
+    const findParentRoute = router.getRoutes().find((item) => item.path === currentActiveMenu)
 
-        if (isHide) {
-          const findParentRoute = router
-            .getRoutes()
-            .find((item) => item.path === currentActiveMenu);
+    findParentRoute && tabStore.addTab(findParentRoute as unknown as RouteLocationNormalized)
+  } else {
+    tabStore.addTab(unref(route))
+  }
+})
 
-          findParentRoute && tabStore.addTab(findParentRoute as unknown as RouteLocationNormalized);
-        } else {
-          tabStore.addTab(unref(route));
-        }
-      });
+function handleChange(activeKey: any) {
+  activeKeyRef.value = activeKey
+  go(activeKey, false)
+}
 
-      function handleChange(activeKey: any) {
-        activeKeyRef.value = activeKey;
-        go(activeKey, false);
-      }
+// Close the current tab
+function handleEdit(targetKey: string) {
+  // Added operation to hide, currently only use delete operation
+  if (unref(unClose)) {
+    return
+  }
 
-      // Close the current tab
-      function handleEdit(targetKey: string) {
-        // Added operation to hide, currently only use delete operation
-        if (unref(unClose)) {
-          return;
-        }
-
-        tabStore.closeTabByKey(targetKey, router);
-      }
-      return {
-        prefixCls,
-        unClose,
-        getWrapClass,
-        handleEdit,
-        handleChange,
-        activeKeyRef,
-        getTabsState,
-        getShowQuick,
-        getShowRedo,
-        getShowFold,
-      };
-    },
-  });
+  tabStore.closeTabByKey(targetKey, router)
+}
 </script>
 <style lang="less">
-  @import './index.less';
+@import './index.less';
 </style>

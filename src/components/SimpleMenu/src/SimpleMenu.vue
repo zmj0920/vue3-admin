@@ -1,160 +1,133 @@
 <template>
   <Menu
     v-bind="getBindValues"
-    :activeName="activeName"
+    :activeName="menuState.activeName"
     :openNames="getOpenKeys"
     :class="prefixCls"
-    :activeSubMenuNames="activeSubMenuNames"
+    :activeSubMenuNames="menuState.activeSubMenuNames"
     @select="handleSelect"
   >
     <template v-for="item in items" :key="item.path">
-      <SimpleSubMenu
-        :item="item"
-        :parent="true"
-        :collapsedShowTitle="collapsedShowTitle"
-        :collapse="collapse"
-      />
+      <SimpleSubMenu :item="item" :parent="true" :collapsedShowTitle="collapsedShowTitle" :collapse="collapse" />
     </template>
   </Menu>
 </template>
-<script lang="ts">
-  import type { MenuState } from './types';
-  import type { Menu as MenuType } from '/@/router/types';
-  import type { RouteLocationNormalizedLoaded } from 'vue-router';
-  import { defineComponent, computed, ref, unref, reactive, toRefs, watch } from 'vue';
-  import { useDesign } from '/@/hooks/web/useDesign';
-  import Menu from './components/Menu.vue';
-  import SimpleSubMenu from './SimpleSubMenu.vue';
-  import { listenerRouteChange } from '/@/logics/mitt/routeChange';
-  import { propTypes } from '/@/utils/propTypes';
-  import { REDIRECT_NAME } from '/@/router/constant';
-  import { useRouter } from 'vue-router';
-  import { isFunction, isUrl } from '/@/utils/is';
-  import { openWindow } from '/@/utils';
+<script lang="ts" setup name="SimpleMenu" inheritAttrs="false">
+import type { MenuState } from './types'
+import type { Menu as MenuType } from '@/router/types'
+import type { RouteLocationNormalizedLoaded } from 'vue-router'
+import { computed, ref, unref, reactive, toRefs, watch, useAttrs } from 'vue'
+import { useDesign } from '@/hooks/web/useDesign'
+import Menu from './components/Menu.vue'
+import SimpleSubMenu from './SimpleSubMenu.vue'
+import { listenerRouteChange } from '@/logics/mitt/routeChange'
+import { propTypes } from '@/utils/propTypes'
+import { REDIRECT_NAME } from '@/router/constant'
+import { useRouter } from 'vue-router'
+import { isFunction, isUrl } from '@/utils/is'
+import { openWindow } from '@/utils'
+import { useOpenKeys } from './useOpenKeys'
 
-  import { useOpenKeys } from './useOpenKeys';
-  export default defineComponent({
-    name: 'SimpleMenu',
-    components: {
-      Menu,
-      SimpleSubMenu,
-    },
-    inheritAttrs: false,
-    props: {
-      items: {
-        type: Array as PropType<MenuType[]>,
-        default: () => [],
-      },
-      collapse: propTypes.bool,
-      mixSider: propTypes.bool,
-      theme: propTypes.string,
-      accordion: propTypes.bool.def(true),
-      collapsedShowTitle: propTypes.bool,
-      beforeClickFn: {
-        type: Function as PropType<(key: string) => Promise<boolean>>,
-      },
-      isSplitMenu: propTypes.bool,
-    },
-    emits: ['menuClick'],
-    setup(props, { attrs, emit }) {
-      const currentActiveMenu = ref('');
-      const isClickGo = ref(false);
+const props = defineProps({
+  items: {
+    type: Array as PropType<MenuType[]>,
+    default: () => []
+  },
+  collapse: propTypes.bool.def(false),
+  mixSider: propTypes.bool.def(false),
+  theme: propTypes.string,
+  accordion: propTypes.bool.def(true),
+  collapsedShowTitle: propTypes.bool,
+  beforeClickFn: {
+    type: Function as PropType<(key: string) => Promise<boolean>>
+  },
+  isSplitMenu: propTypes.bool
+})
+const emit = defineEmits(['menuClick'])
+const attrs = useAttrs()
 
-      const menuState = reactive<MenuState>({
-        activeName: '',
-        openNames: [],
-        activeSubMenuNames: [],
-      });
+const currentActiveMenu = ref('')
+const isClickGo = ref(false)
 
-      const { currentRoute } = useRouter();
-      const { prefixCls } = useDesign('simple-menu');
-      const { items, accordion, mixSider, collapse } = toRefs(props);
+const menuState = reactive<MenuState>({
+  activeName: '',
+  openNames: [],
+  activeSubMenuNames: []
+})
 
-      const { setOpenKeys, getOpenKeys } = useOpenKeys(
-        menuState,
-        items,
-        accordion,
-        mixSider,
-        collapse,
-      );
+const { currentRoute } = useRouter()
+const { prefixCls } = useDesign('simple-menu')
+const { items, accordion, mixSider, collapse } = toRefs(props)
 
-      const getBindValues = computed(() => ({ ...attrs, ...props }));
+const { setOpenKeys, getOpenKeys } = useOpenKeys(menuState, items, accordion, mixSider, collapse)
 
-      watch(
-        () => props.collapse,
-        (collapse) => {
-          if (collapse) {
-            menuState.openNames = [];
-          } else {
-            setOpenKeys(currentRoute.value.path);
-          }
-        },
-        { immediate: true },
-      );
+const getBindValues = computed(() => ({ ...attrs, ...props }))
 
-      watch(
-        () => props.items,
-        () => {
-          if (!props.isSplitMenu) {
-            return;
-          }
-          setOpenKeys(currentRoute.value.path);
-        },
-        { flush: 'post' },
-      );
+watch(
+  () => props.collapse,
+  (collapse) => {
+    if (collapse) {
+      menuState.openNames = []
+    } else {
+      setOpenKeys(currentRoute.value.path)
+    }
+  },
+  { immediate: true }
+)
 
-      listenerRouteChange((route) => {
-        if (route.name === REDIRECT_NAME) return;
+watch(
+  () => props.items,
+  () => {
+    if (!props.isSplitMenu) {
+      return
+    }
+    setOpenKeys(currentRoute.value.path)
+  },
+  { flush: 'post' }
+)
 
-        currentActiveMenu.value = route.meta?.currentActiveMenu as string;
-        handleMenuChange(route);
+listenerRouteChange((route) => {
+  if (route.name === REDIRECT_NAME) return
 
-        if (unref(currentActiveMenu)) {
-          menuState.activeName = unref(currentActiveMenu);
-          setOpenKeys(unref(currentActiveMenu));
-        }
-      });
+  currentActiveMenu.value = route.meta?.currentActiveMenu as string
+  handleMenuChange(route)
 
-      async function handleMenuChange(route?: RouteLocationNormalizedLoaded) {
-        if (unref(isClickGo)) {
-          isClickGo.value = false;
-          return;
-        }
-        const path = (route || unref(currentRoute)).path;
+  if (unref(currentActiveMenu)) {
+    menuState.activeName = unref(currentActiveMenu)
+    setOpenKeys(unref(currentActiveMenu))
+  }
+})
 
-        menuState.activeName = path;
+async function handleMenuChange(route?: RouteLocationNormalizedLoaded) {
+  if (unref(isClickGo)) {
+    isClickGo.value = false
+    return
+  }
+  const path = (route || unref(currentRoute)).path
 
-        setOpenKeys(path);
-      }
+  menuState.activeName = path
 
-      async function handleSelect(key: string) {
-        if (isUrl(key)) {
-          openWindow(key);
-          return;
-        }
-        const { beforeClickFn } = props;
-        if (beforeClickFn && isFunction(beforeClickFn)) {
-          const flag = await beforeClickFn(key);
-          if (!flag) return;
-        }
+  setOpenKeys(path)
+}
 
-        emit('menuClick', key);
+async function handleSelect(key: string) {
+  if (isUrl(key)) {
+    openWindow(key)
+    return
+  }
+  const { beforeClickFn } = props
+  if (beforeClickFn && isFunction(beforeClickFn)) {
+    const flag = await beforeClickFn(key)
+    if (!flag) return
+  }
 
-        isClickGo.value = true;
-        setOpenKeys(key);
-        menuState.activeName = key;
-      }
+  emit('menuClick', key)
 
-      return {
-        prefixCls,
-        getBindValues,
-        handleSelect,
-        getOpenKeys,
-        ...toRefs(menuState),
-      };
-    },
-  });
+  isClickGo.value = true
+  setOpenKeys(key)
+  menuState.activeName = key
+}
 </script>
 <style lang="less">
-  @import './index.less';
+@import './index.less';
 </style>

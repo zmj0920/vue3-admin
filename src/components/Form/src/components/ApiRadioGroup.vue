@@ -13,118 +13,108 @@
     </template>
   </RadioGroup>
 </template>
-<script lang="ts">
-  import { defineComponent, PropType, ref, watchEffect, computed, unref, watch } from 'vue';
-  import { Radio } from 'ant-design-vue';
-  import { isFunction } from '/@/utils/is';
-  import { useRuleFormItem } from '/@/hooks/component/useFormItem';
-  import { useAttrs } from '/@/hooks/core/useAttrs';
-  import { propTypes } from '/@/utils/propTypes';
-  import { get, omit } from 'lodash-es';
-  import { useI18n } from '/@/hooks/web/useI18n';
-  type OptionsItem = { label: string; value: string | number | boolean; disabled?: boolean };
+<script lang="ts" setup name="ApiRadioGroup">
+import { ref, watchEffect, computed, unref, watch } from 'vue'
+import { Radio } from 'ant-design-vue'
+import { isFunction } from '@/utils/is'
+import { useRuleFormItem } from '@/hooks/component/useFormItem'
+import { useAttrs } from '@/hooks/core/useAttrs'
+import { propTypes } from '@/utils/propTypes'
+import { get, omit } from 'lodash-es'
+const RadioButton = Radio.Button
+const RadioGroup = Radio.Group
 
-  export default defineComponent({
-    name: 'ApiRadioGroup',
-    components: {
-      RadioGroup: Radio.Group,
-      RadioButton: Radio.Button,
-      Radio,
-    },
-    props: {
-      api: {
-        type: Function as PropType<(arg?: Recordable | string) => Promise<OptionsItem[]>>,
-        default: null,
-      },
-      params: {
-        type: [Object, String] as PropType<Recordable | string>,
-        default: () => ({}),
-      },
-      value: {
-        type: [String, Number, Boolean] as PropType<string | number | boolean>,
-      },
-      isBtn: {
-        type: [Boolean] as PropType<boolean>,
-        default: false,
-      },
-      numberToString: propTypes.bool,
-      resultField: propTypes.string.def(''),
-      labelField: propTypes.string.def('label'),
-      valueField: propTypes.string.def('value'),
-      immediate: propTypes.bool.def(true),
-    },
-    emits: ['options-change', 'change'],
-    setup(props, { emit }) {
-      const options = ref<OptionsItem[]>([]);
-      const loading = ref(false);
-      const isFirstLoad = ref(true);
-      const emitData = ref<any[]>([]);
-      const attrs = useAttrs();
-      const { t } = useI18n();
-      // Embedded in the form, just use the hook binding to perform form verification
-      const [state] = useRuleFormItem(props);
+type OptionsItem = { label: string; value: string | number | boolean; disabled?: boolean }
 
-      // Processing options value
-      const getOptions = computed(() => {
-        const { labelField, valueField, numberToString } = props;
+const props = defineProps({
+  api: {
+    type: Function as PropType<(arg?: Recordable | string) => Promise<OptionsItem[]>>,
+    default: null
+  },
+  params: {
+    type: [Object, String] as PropType<Recordable | string>,
+    default: () => ({})
+  },
+  value: {
+    type: [String, Number, Boolean] as PropType<string | number | boolean>
+  },
+  isBtn: {
+    type: [Boolean] as PropType<boolean>,
+    default: false
+  },
+  numberToString: propTypes.bool,
+  resultField: propTypes.string.def(''),
+  labelField: propTypes.string.def('label'),
+  valueField: propTypes.string.def('value'),
+  immediate: propTypes.bool.def(true)
+})
+const emit = defineEmits(['options-change', 'change'])
 
-        return unref(options).reduce((prev, next: Recordable) => {
-          if (next) {
-            const value = next[valueField];
-            prev.push({
-              label: next[labelField],
-              value: numberToString ? `${value}` : value,
-              ...omit(next, [labelField, valueField]),
-            });
-          }
-          return prev;
-        }, [] as OptionsItem[]);
-      });
+const options = ref<OptionsItem[]>([])
+const loading = ref(false)
+const isFirstLoad = ref(true)
+const emitData = ref<any[]>([])
+const attrs = useAttrs()
+// Embedded in the form, just use the hook binding to perform form verification
+const [state] = useRuleFormItem(props)
 
-      watchEffect(() => {
-        props.immediate && fetch();
-      });
+// Processing options value
+const getOptions = computed(() => {
+  const { labelField, valueField, numberToString } = props
 
-      watch(
-        () => props.params,
-        () => {
-          !unref(isFirstLoad) && fetch();
-        },
-        { deep: true },
-      );
+  return unref(options).reduce((prev, next: Recordable) => {
+    if (next) {
+      const value = next[valueField]
+      prev.push({
+        label: next[labelField],
+        value: numberToString ? `${value}` : value,
+        ...omit(next, [labelField, valueField])
+      })
+    }
+    return prev
+  }, [] as OptionsItem[])
+})
 
-      async function fetch() {
-        const api = props.api;
-        if (!api || !isFunction(api)) return;
-        options.value = [];
-        try {
-          loading.value = true;
-          const res = await api(props.params);
-          if (Array.isArray(res)) {
-            options.value = res;
-            emitChange();
-            return;
-          }
-          if (props.resultField) {
-            options.value = get(res, props.resultField) || [];
-          }
-          emitChange();
-        } catch (error) {
-          console.warn(error);
-        } finally {
-          loading.value = false;
-        }
-      }
+watchEffect(() => {
+  props.immediate && fetch()
+})
 
-      function emitChange() {
-        emit('options-change', unref(getOptions));
-      }
+watch(
+  () => props.params,
+  () => {
+    !unref(isFirstLoad) && fetch()
+  },
+  { deep: true }
+)
 
-      function handleChange(_, ...args) {
-        emitData.value = args;
-      }
+async function fetch() {
+  const api = props.api
+  if (!api || !isFunction(api)) return
+  options.value = []
+  try {
+    loading.value = true
+    const res = await api(props.params)
+    if (Array.isArray(res)) {
+      options.value = res
+      emitChange()
+      return
+    }
+    if (props.resultField) {
+      options.value = get(res, props.resultField) || []
+    }
+    emitChange()
+  } catch (error) {
+    console.warn(error)
+  } finally {
+    loading.value = false
+  }
+}
 
-      return { state, getOptions, attrs, loading, t, handleChange, props };
-    },
-  });
+function emitChange() {
+  emit('options-change', unref(getOptions))
+}
+
+function handleChange(args) {
+  emitData.value = args
+}
 </script>
