@@ -1,6 +1,7 @@
 import 'uno.css'
 import 'virtual:unocss-devtools'
 import '@/design/index.less'
+import '@/components/VxeTable/src/css/index.scss'
 // Register icon sprite
 import 'virtual:svg-icons-register'
 import App from './App.vue'
