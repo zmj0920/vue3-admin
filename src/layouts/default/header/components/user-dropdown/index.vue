@@ -11,6 +11,7 @@
 
     <template #overlay>
       <Menu @click="handleMenuClick">
+        <MenuItem key="user" :text="t('layout.header.dropdownItemUserCenter')" icon="ant-design:user-outlined" />
         <MenuItem key="doc" :text="t('layout.header.dropdownItemDoc')" icon="ion:document-text-outline" v-if="getShowDoc" />
         <MenuDivider v-if="getShowDoc" />
         <MenuItem v-if="getUseLockPage" key="lock" :text="t('layout.header.tooltipLock')" icon="ion:lock-closed-outline" />
@@ -38,13 +39,14 @@ import { useModal } from '@/components/Modal'
 import headerImg from '@/assets/images/header.jpg'
 import { propTypes } from '@/utils/propTypes'
 import { openWindow } from '@/utils'
+import { useGo } from '@/hooks/web/usePage'
 
 import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
-
+const go = useGo()
 const MenuItem = createAsyncComponent(() => import('./DropMenuItem.vue'))
 const LockAction = createAsyncComponent(() => import('../lock/LockModal.vue'))
 const MenuDivider = Menu.Divider
-type MenuEvent = 'logout' | 'doc' | 'lock'
+type MenuEvent = 'logout' | 'doc' | 'lock' | 'user'
 
 defineProps({
   theme: propTypes.oneOf(['dark', 'light'])
@@ -66,25 +68,32 @@ function handleLock() {
 }
 
 //  login out
-function handleLoginOut() {
-  userStore.confirmLoginOut()
-}
+// function handleLoginOut() {
+//   userStore.confirmLoginOut()
+// }
 
-// open doc
-function openDoc() {
-  openWindow(DOC_URL)
+// // open doc
+// function openDoc() {
+//   openWindow(DOC_URL)
+// }
+
+function goUrl(url: string) {
+  go(url)
 }
 
 function handleMenuClick(e: MenuInfo) {
   switch (e.key as MenuEvent) {
     case 'logout':
-      handleLoginOut()
+      userStore.confirmLoginOut()
       break
     case 'doc':
-      openDoc()
+      openWindow(DOC_URL)
       break
     case 'lock':
-      handleLock()
+      openModal(true)
+      break
+    case 'user':
+      goUrl('/user-center')
       break
   }
 }

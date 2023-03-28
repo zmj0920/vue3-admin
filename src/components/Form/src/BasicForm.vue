@@ -6,7 +6,7 @@
         <FormItem
           :isAdvanced="fieldsIsAdvancedMap[schema.field]"
           :tableAction="tableAction"
-          :formActionType="formActionType as any"
+          :formActionType="formActionType"
           :schema="schema"
           :formProps="getProps"
           :allDefaultValues="defaultValueRef"

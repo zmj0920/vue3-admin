@@ -15,6 +15,8 @@ defineProps({
 const chartRef = ref<HTMLDivElement | null>(null)
 const { setOptions, echarts } = useECharts(chartRef as Ref<HTMLDivElement>)
 const { barData, lineData, category } = getLineData
+console.log(getLineData)
+
 onMounted(() => {
   setOptions({
     backgroundColor: '#0f375f',

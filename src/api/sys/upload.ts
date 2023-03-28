@@ -8,11 +8,10 @@ const { uploadUrl = '' } = useGlobSetting()
 /**
  * @description: Upload interface
  */
-export function uploadApi(params: UploadFileParams, onUploadProgress: (progressEvent: ProgressEvent) => void) {
+export function uploadApi(params: UploadFileParams): Promise<any> {
   return defHttp.uploadFile<UploadApiResult>(
     {
-      url: uploadUrl,
-      onUploadProgress
+      url: uploadUrl
     },
     params
   )

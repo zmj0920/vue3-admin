@@ -2,7 +2,6 @@ import type { AppRouteRecordRaw, Menu } from '@/router/types'
 
 import { defineStore } from 'pinia'
 import { store } from '@/store'
-import { useI18n } from '@/hooks/web/useI18n'
 import { useUserStore } from './user'
 import { useAppStoreWithOut } from './app'
 import { toRaw } from 'vue'
@@ -18,10 +17,9 @@ import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic'
 
 import { filter } from '@/utils/helper/treeHelper'
 
-import { getMenuList } from '@/api/sys/menu'
-import { getPermCode } from '@/api/sys/user'
+import { getMenus } from '@/api/menu'
+import { getPermissions } from '@/api/user'
 
-import { useMessage } from '@/hooks/web/useMessage'
 import { PageEnum } from '@/enums/pageEnum'
 
 interface PermissionState {
@@ -103,13 +101,12 @@ export const usePermissionStore = defineStore('app-permission', {
       this.lastBuildMenuTime = 0
     },
     async changePermissionCode() {
-      const codeList = await getPermCode()
+      const codeList = await getPermissions()
       this.setPermCodeList(codeList)
     },
 
     // 构建路由
     async buildRoutesAction(): Promise<AppRouteRecordRaw[]> {
-      const { t } = useI18n()
       const userStore = useUserStore()
       const appStore = useAppStoreWithOut()
 
@@ -221,7 +218,7 @@ export const usePermissionStore = defineStore('app-permission', {
           let routeList: AppRouteRecordRaw[] = []
           try {
             this.changePermissionCode()
-            routeList = (await getMenuList()) as AppRouteRecordRaw[]
+            routeList = (await getMenus()) as AppRouteRecordRaw[]
           } catch (error) {
             console.error(error)
           }

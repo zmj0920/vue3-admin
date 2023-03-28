@@ -63,15 +63,6 @@ function scrollBottom() {
   })
 }
 defineExpose({ scrollbarRef, scrollTo, scrollBottom, getScrollWrap })
-
-//     return {
-//       scrollbarRef,
-//       scrollTo,
-//       scrollBottom,
-//       getScrollWrap
-//     }
-//   }
-// })
 </script>
 <style lang="less">
 .scroll-container {

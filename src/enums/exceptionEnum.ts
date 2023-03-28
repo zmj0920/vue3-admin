@@ -12,7 +12,7 @@ export enum ExceptionEnum {
   ERROR = 500,
 
   // net work error
-  NET_WORK_ERROR = 10000,
+  NET_WORK_ERROR = 100000,
 
   // No data on the page. In fact, it is not an exception page
   PAGE_NOT_DATA = 10100
